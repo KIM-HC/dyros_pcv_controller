@@ -2,7 +2,7 @@
 
 
 MobileController::MobileController(const double hz) : 
-tick_(0), play_time_(0.0), hz_(hz), control_mode_("none"), is_mode_changed_(false), period_(1/hz)
+tick_(0), play_time_(0.0), hz_(hz), control_mode_("none"), is_mode_changed_(false), dt_(1/hz)
 {
   veh_.Add_Solid(  0.000,  0.000,  XR_Mv, XR_Iv);
   // // angle info is not used --> use home_offset for canopen
@@ -59,12 +59,12 @@ void MobileController::compute()
 
   // FIND LOCAL OPERATIONAL SPEEDS
   rx_dot_ = Jcp_ * q_dot_;      // RAW LOCAL OP SPEEDS
-  x_ += rx_dot_ * period_;      // "LOCAL" COORDS
-  x_dot_filter_ = DyrosMath::lowPassFilter(rx_dot_, x_dot_prev_, period_, 10.0);
+  x_ += rx_dot_ * dt_;      // "LOCAL" COORDS
+  x_dot_filter_ = DyrosMath::lowPassFilter(rx_dot_, x_dot_prev_, dt_, 10.0);
   x_dot_ = x_dot_filter_;       // LOCAL SPEED (ALSO FOR DYN)
 
   // DELTA: MAP LOCAL --> GLOBAL COORDS
-  heading_ = gx_(2) + 0.5 * rx_dot_(2) * period_;  // USE raw x dot
+  heading_ = gx_(2) + 0.5 * rx_dot_(2) * dt_;  // USE raw x dot
   rot_(0,0) =  cos(heading_);
   rot_(0,1) = -sin(heading_);
   rot_(1,0) =  sin(heading_);
@@ -72,8 +72,8 @@ void MobileController::compute()
   rgx_dot_ = rot_ * rx_dot_;    // RAW GLOBAL OP SPEEDS
 
   // INTEGRATION TO GLOBAL COORDS
-  gx_ += rgx_dot_ * period_;
-  gx_dot_filter_ = DyrosMath::lowPassFilter(rgx_dot_, gx_dot_prev_, period_, 10.0);
+  gx_ += rgx_dot_ * dt_;
+  gx_dot_filter_ = DyrosMath::lowPassFilter(rgx_dot_, gx_dot_prev_, dt_, 10.0);
   gx_dot_ = gx_dot_filter_;       // GLOBAL SPEED (ALSO FOR DYN)
 
   // END ODOMETRY SECTION
@@ -135,7 +135,7 @@ void MobileController::compute()
       joy_input_.head<2>() = joy_input_.head<2>().normalized();
     }
     xd_dot_ = joy_speed_.asDiagonal() * joy_input_;
-    xd_ = xd_ + xd_dot_ * period_;
+    xd_ = xd_ + xd_dot_ * dt_;
 
     x_delta_ = xd_ - x_;
     x_dot_delta_ = xd_dot_ - x_dot_;
@@ -182,10 +182,10 @@ void MobileController::compute()
   }
 
   else if (control_mode_ == "wheel_control") {
-    double wheel_vel, wheel_ang, dt;
-    dt = 6.0;
+    double wheel_vel, wheel_ang, time_duration;
+    time_duration = 6.0;
     wheel_vel = 0.5;
-    wheel_ang = wheel_vel*dt;
+    wheel_ang = wheel_vel*time_duration;
     q_target_ = q_init_;
     for (int i=0; i<N_CASTERS; i++) {
       q_target_(i*2 + 1) += wheel_ang;
@@ -193,7 +193,7 @@ void MobileController::compute()
 
     for(int  i = 0; i < 2*N_CASTERS; i++) {
       Eigen::Vector3d q_temp;
-      q_temp = DyrosMath::quinticSpline(play_time_, control_start_time_, control_start_time_ + dt,  q_init_(i), 0.0, 0.0, q_target_(i), 0.0, 0.0);     
+      q_temp = DyrosMath::quinticSpline(play_time_, control_start_time_, control_start_time_ + time_duration,  q_init_(i), 0.0, 0.0, q_target_(i), 0.0, 0.0);     
       qd_(i)      = q_temp(0);
       qd_dot_(i)  = q_temp(1);
       qd_ddot_(i) = q_temp(2);
@@ -236,7 +236,7 @@ void MobileController::compute()
   saveState();
 
   tick_++;
-  play_time_ = tick_ * period_;	// second // TODO: need to use real time
+  play_time_ = tick_ * dt_;	// second // TODO: need to use real time
 }
 
 void MobileController::initClass()

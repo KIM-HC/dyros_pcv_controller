@@ -92,7 +92,7 @@ class MobileController
         unsigned long tick_;
         int print_tick_;
         double play_time_;
-        double hz_, period_, dt_, duration_;
+        double hz_, dt_, duration_;
         double control_start_time_;
 
         std::string control_mode_, package_path_;
