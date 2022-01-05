@@ -19,7 +19,7 @@ tick_(0), play_time_(0.0), hz_(hz), control_mode_("none"), is_mode_changed_(fals
   initClass();
 
   print_tick_ = int(hz_ * 0.5);
-  package_path_ = "/home/khc/catkin_ws/src/dyros_pcv_controller/";
+  package_path_ = "/home/kimhc/catkin_ws/src/dyros_pcv_controller/";
 
   pcv_q.open(       package_path_ + "save_data/pcv_q.txt");
   pcv_q_dot.open(   package_path_ + "save_data/pcv_q_dot.txt");
