@@ -12,7 +12,7 @@
 class MobileController
 {
     public:
-        MobileController(const double hz); 
+        MobileController(const double hz, const std::string pkg_path); 
         ~MobileController(){};
         
         // get the raw data from the robot or simulator
@@ -94,6 +94,7 @@ class MobileController
         double play_time_;
         double hz_, dt_, duration_;
         double control_start_time_;
+        double additional_mass_;
 
         std::string control_mode_, package_path_;
         bool is_mode_changed_;

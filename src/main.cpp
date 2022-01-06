@@ -1,19 +1,14 @@
-#include <iostream>
-#include <string>
-#include <ros/ros.h>
-#include <sensor_msgs/JointState.h>
 #include "mobile_controller.h"
 #include "ros_node.h"
 
 #include "linux_terminal_tool.h"
 #define MODE(X,Y) case X: mc.setMode(Y); break;
 
-
-
 int main(int argc, char **argv)
 {
 	const double hz = 300.0 ;
-	MobileController mc(hz);
+	std::string pkg_path = ros::package::getPath("dyros_pcv_controller");
+	MobileController mc(hz, pkg_path);
 	bool is_simulation_run = true;
 	bool exit_flag = false;
 	bool is_first = true;

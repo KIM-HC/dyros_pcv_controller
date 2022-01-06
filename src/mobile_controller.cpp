@@ -1,8 +1,8 @@
 #include "mobile_controller.h"
 
 
-MobileController::MobileController(const double hz) : 
-tick_(0), play_time_(0.0), hz_(hz), control_mode_("none"), is_mode_changed_(false), dt_(1/hz)
+MobileController::MobileController(const double hz, const std::string pkg_path) : 
+tick_(0), play_time_(0.0), hz_(hz), control_mode_("none"), is_mode_changed_(false), dt_(1/hz), package_path_(pkg_path)
 {
   veh_.Add_Solid(  0.000,  0.000,  XR_Mv, XR_Iv);
   // // angle info is not used --> use home_offset for canopen
@@ -19,26 +19,25 @@ tick_(0), play_time_(0.0), hz_(hz), control_mode_("none"), is_mode_changed_(fals
   initClass();
 
   print_tick_ = int(hz_ * 0.5);
-  package_path_ = "/home/kimhc/catkin_ws/src/dyros_pcv_controller/";
 
-  pcv_q.open(       package_path_ + "save_data/pcv_q.txt");
-  pcv_q_dot.open(   package_path_ + "save_data/pcv_q_dot.txt");
+  pcv_q.open(       package_path_ + "/save_data/pcv_q.txt");
+  pcv_q_dot.open(   package_path_ + "/save_data/pcv_q_dot.txt");
 
-  pcv_qd.open(      package_path_ + "save_data/pcv_qd.txt");
-  pcv_qd_dot.open(  package_path_ + "save_data/pcv_qd_dot.txt");
-  pcv_taud.open(    package_path_ + "save_data/pcv_taud.txt");
-  pcv_tqs.open(     package_path_ + "save_data/pcv_tqs.txt");
-  pcv_tqe.open(     package_path_ + "save_data/pcv_tqe.txt");
+  pcv_qd.open(      package_path_ + "/save_data/pcv_qd.txt");
+  pcv_qd_dot.open(  package_path_ + "/save_data/pcv_qd_dot.txt");
+  pcv_taud.open(    package_path_ + "/save_data/pcv_taud.txt");
+  pcv_tqs.open(     package_path_ + "/save_data/pcv_tqs.txt");
+  pcv_tqe.open(     package_path_ + "/save_data/pcv_tqe.txt");
 
-  pcv_x.open(       package_path_ + "save_data/pcv_x.txt");
-  pcv_x_dot.open(   package_path_ + "save_data/pcv_x_dot.txt");
+  pcv_x.open(       package_path_ + "/save_data/pcv_x.txt");
+  pcv_x_dot.open(   package_path_ + "/save_data/pcv_x_dot.txt");
 
-  pcv_xd.open(      package_path_ + "save_data/pcv_xd.txt");
-  pcv_xd_dot.open(  package_path_ + "save_data/pcv_xd_dot.txt");
-  pcv_fd_star.open( package_path_ + "save_data/pcv_fd_star.txt");
-  pcv_fd.open(      package_path_ + "save_data/pcv_fd.txt");
+  pcv_xd.open(      package_path_ + "/save_data/pcv_xd.txt");
+  pcv_xd_dot.open(  package_path_ + "/save_data/pcv_xd_dot.txt");
+  pcv_fd_star.open( package_path_ + "/save_data/pcv_fd_star.txt");
+  pcv_fd.open(      package_path_ + "/save_data/pcv_fd.txt");
 
-  pcv_debug.open(   package_path_ + "save_data/pcv_debug.txt");
+  pcv_debug.open(   package_path_ + "/save_data/pcv_debug.txt");
 
   std::cout<<"Load Mobile Controller"<<std::endl;
 }
@@ -219,7 +218,7 @@ void MobileController::compute()
   taud_ += tqS_;
 
   // // INTERNAL FORCE COMPUTATION
-  // // TODO: CHECK ORIGINAL CODE ANGAIN!
+  // // TODO: CHECK ORIGINAL CODE AGAIN!
   // if(true) {
   //   veh_.Fill_E_q( E_ );
   //   // PROJECT TO 'E'-SPACE AND THEN BACK TO JT-SPACE
@@ -248,6 +247,7 @@ void MobileController::initClass()
   rtE_.resize(NUM_TRUSS_LINKS);
 
   heading_ = 0.0;
+  additional_mass_ = 0.0;
 
   x_.setZero();
   x_dot_.setZero();
@@ -316,7 +316,7 @@ void MobileController::setMode(const std::string & mode)
   control_mode_ = mode;
   std::cout << "Current mode (changed) : " << mode << std::endl;
 
-  std::ifstream mode_setter(package_path_ + "setting/basic_setting.txt");
+  std::ifstream mode_setter(package_path_ + "/setting/basic_setting.txt");
   std::string dummy;
   mode_setter >> dummy;
   for (int i = 0; i < N_CASTERS*2; i++) {mode_setter >> Kp_joint(i);}
@@ -338,6 +338,11 @@ void MobileController::setMode(const std::string & mode)
   mode_setter >> dummy;
   for (int i = 0; i < 3; i++) {mode_setter >> joy_speed_(i);}
 
+  veh_.Add_Solid(0.0, 0.0, -additional_mass_, 0.0);
+  mode_setter >> dummy;
+  mode_setter >> additional_mass_;
+  veh_.Add_Solid(0.0, 0.0, additional_mass_, 0.0);
+
   mode_setter.close();
 
   std::cout << " Kp_joint: " << Kp_joint.transpose() << std::endl;
@@ -347,6 +352,7 @@ void MobileController::setMode(const std::string & mode)
   std::cout << "     Kp_E: " << Kp_E_ << std::endl;
   std::cout << "   weight: " << weight_.transpose() << std::endl;
   std::cout << "joy_speed: " << joy_speed_.transpose() << std::endl;
+  std::cout << "     mass: " << additional_mass_ << std::endl;
 }
 
 VectorQd MobileController::setDesiredJointTorque(){ return taud_; }

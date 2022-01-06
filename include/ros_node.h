@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <ros/ros.h>
+#include <ros/package.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/Joy.h>
 #include <std_msgs/String.h>
