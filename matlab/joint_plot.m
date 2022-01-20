@@ -1,7 +1,6 @@
 clc
 clear all
 
-addpath('/home/dyros/catkin_ws/src/powered_caster_vehicle')
 
 q = load('pcv_q.txt');
 qd = load('pcv_qd.txt');

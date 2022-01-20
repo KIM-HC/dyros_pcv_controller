@@ -39,7 +39,7 @@ void RosNode::jointCallback(const sensor_msgs::JointState::ConstPtr& msg) {
 
 void RosNode::joyCallback(const sensor_msgs::Joy::ConstPtr& msg) {
     time_checker = ros::Time::now();
-    if (msg->buttons[7] == 1) {  // changes with what dongle you use
+    if (msg->buttons[5] == 1) {  // changes with what dongle you use
         joy_input_(0) = msg->axes[1];
         joy_input_(1) = msg->axes[0];
         joy_input_(2) = msg->axes[2];

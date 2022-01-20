@@ -37,6 +37,7 @@ int main(int argc, char **argv)
 			{
 				MODE('o', "op_control")
 				MODE('j', "joy_control")
+				MODE('k', "joy_control_backup")
 				MODE('s', "steer_control")
 				MODE('i', "steer_init")
 				MODE('w', "wheel_control")

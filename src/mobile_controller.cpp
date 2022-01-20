@@ -120,19 +120,6 @@ void MobileController::compute()
     if (joy_input_.head<2>().norm() > 1.0) {
       joy_input_.head<2>() = joy_input_.head<2>().normalized();
     }
-    x_delta_ = joy_speed_.asDiagonal() * joy_input_;
-
-    fd_star_ = Kp_task.asDiagonal() * x_delta_;
-
-    taud_ = Jcpt_ * (Lambda_ * fd_star_ + Mu_);  // with Mu
-    // taud_ = Jcpt_ *  Lambda_ * fd_star_ ;        // without Mu
-    taud_ = weight_.asDiagonal() * taud_;
-  }
-
-  else if(control_mode_ == "joy_control_2") {
-    if (joy_input_.head<2>().norm() > 1.0) {
-      joy_input_.head<2>() = joy_input_.head<2>().normalized();
-    }
     xd_dot_ = joy_speed_.asDiagonal() * joy_input_;
     xd_ = xd_ + xd_dot_ * dt_;
 
@@ -141,6 +128,21 @@ void MobileController::compute()
 
     fd_star_ = Kp_task.asDiagonal() * x_delta_
              + Kv_task.asDiagonal() * x_dot_delta_;
+
+    taud_ = Jcpt_ * (Lambda_ * fd_star_ + Mu_);  // with Mu
+    // taud_ = Jcpt_ *  Lambda_ * fd_star_ ;        // without Mu
+    taud_ = weight_.asDiagonal() * taud_;
+  }
+
+  else if(control_mode_ == "joy_control_backup") {
+    if (joy_input_.head<2>().norm() > 1.0) {
+      joy_input_.head<2>() = joy_input_.head<2>().normalized();
+    }
+    Eigen::Vector3d tmp_kp{15000, 15000, 15000};
+
+    x_delta_ = joy_speed_.asDiagonal() * joy_input_;
+
+    fd_star_ = tmp_kp.asDiagonal() * x_delta_;
 
     taud_ = Jcpt_ * (Lambda_ * fd_star_ + Mu_);  // with Mu
     // taud_ = Jcpt_ *  Lambda_ * fd_star_ ;        // without Mu
@@ -248,6 +250,7 @@ void MobileController::initClass()
 
   heading_ = 0.0;
   additional_mass_ = 0.0;
+  is_op_ctrl = false;
 
   x_.setZero();
   x_dot_.setZero();
@@ -284,8 +287,6 @@ void MobileController::initMode()
 
   rot_.setIdentity();
 
-  xd_.setZero();
-  xd_dot_.setZero();
   xd_ddot_.setZero();
 
   x_delta_.setZero();
@@ -299,6 +300,9 @@ void MobileController::initMode()
 
   x_init_ = x_;
   x_dot_init_ = x_dot_;
+
+  xd_ = x_init_;
+  xd_dot_ = x_dot_init_;
 
   x_prev_ = x_;
   x_dot_prev_ = x_dot_;
@@ -345,6 +349,14 @@ void MobileController::setMode(const std::string & mode)
 
   mode_setter.close();
 
+  if (control_mode_ == "wheel_control" || control_mode_ == "steer_init" ||
+      control_mode_ == "steer_control" || control_mode_ == "none") {
+        is_op_ctrl = false;
+      }
+  else {
+    is_op_ctrl = true;
+  }
+
   std::cout << " Kp_joint: " << Kp_joint.transpose() << std::endl;
   std::cout << " Kv_joint: " << Kv_joint.transpose() << std::endl;
   std::cout << "  Kp_task: " << Kp_task.transpose() << std::endl;
@@ -385,20 +397,23 @@ void MobileController::printState()
     std::cout << "    mode: " << control_mode_ << std::endl;
     std::cout << "run time: " << play_time_- control_start_time_ << std::endl;
     std::cout << "duration: " << duration_ << std::endl;
-    std::cout << "  q_init: " << q_init_.transpose() << std::endl;
-    std::cout << "       q: " << q_.transpose() << std::endl;
-    std::cout << "   q_dot: " << q_dot_.transpose() << std::endl;
-    std::cout << "      qd: " << qd_.transpose() << std::endl;
-    std::cout << "  qd_dot: " << qd_dot_.transpose() << std::endl;
-    std::cout << " qd_ddot: " << qd_ddot_.transpose() << std::endl;
-    std::cout << "  x_init: " << x_init_.transpose() << std::endl;
-    std::cout << "       x: " << x_.transpose() << std::endl;
-    std::cout << "      xd: " << xd_.transpose() << std::endl;
-    if (control_mode_ == "op_control" || control_mode_ == "joy_control") {
+    if (is_op_ctrl) {
+      std::cout << "  x_init: " << x_init_.transpose() << std::endl;
+      std::cout << "       x: " << x_.transpose() << std::endl;
+      std::cout << "   x_dot: " << x_dot_.transpose() << std::endl;
+      std::cout << "      xd: " << xd_.transpose() << std::endl;
+      std::cout << "  xd_dot: " << xd_dot_.transpose() << std::endl;
       std::cout << " x_delta: " << x_delta_.transpose() << std::endl;
+      std::cout << "x_ddelta: " << x_dot_delta_.transpose() << std::endl;
       std::cout << "      Mu: " << Mu_.transpose() << std::endl;
     }
-    else if (control_mode_ == "steer_control" || control_mode_ == "steer_init" || control_mode_ == "wheel_control") {
+    else {
+      std::cout << "  q_init: " << q_init_.transpose() << std::endl;
+      std::cout << "       q: " << q_.transpose() << std::endl;
+      std::cout << "   q_dot: " << q_dot_.transpose() << std::endl;
+      std::cout << "      qd: " << qd_.transpose() << std::endl;
+      std::cout << "  qd_dot: " << qd_dot_.transpose() << std::endl;
+      std::cout << " qd_ddot: " << qd_ddot_.transpose() << std::endl;
       std::cout << " q_delta: " << (qd_ - q_).transpose() << std::endl;
     }
     std::cout << "    taud: " << taud_.transpose() << std::endl;
@@ -411,7 +426,6 @@ void MobileController::printState()
     // std::cout << "Jcpt  :\n" << Jcpt_ << std::endl;
     // std::cout << "Jt:\n" << Jt_ << std::endl;
     // std::cout << "C:\n" << C_ << std::endl;
-    // std::cout << "Mu:\n" << Mu_ << std::endl;
   }
 }
 

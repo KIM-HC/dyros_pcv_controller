@@ -97,7 +97,7 @@ class MobileController
         double additional_mass_;
 
         std::string control_mode_, package_path_;
-        bool is_mode_changed_;
+        bool is_mode_changed_, is_op_ctrl;
 
     private:        
         void printState();
