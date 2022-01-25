@@ -116,7 +116,7 @@ void MobileController::compute()
     taud_ = weight_.asDiagonal() * taud_;
   }
 
-  else if(control_mode_ == "joy_control") {
+  else if(control_mode_ == "joy_control_test") {
     if (joy_input_.head<2>().norm() > 1.0) {
       joy_input_.head<2>() = joy_input_.head<2>().normalized();
     }
@@ -134,7 +134,7 @@ void MobileController::compute()
     taud_ = weight_.asDiagonal() * taud_;
   }
 
-  else if(control_mode_ == "joy_control_backup") {
+  else if(control_mode_ == "joy_control") {
     if (joy_input_.head<2>().norm() > 1.0) {
       joy_input_.head<2>() = joy_input_.head<2>().normalized();
     }
