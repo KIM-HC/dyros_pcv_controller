@@ -139,8 +139,9 @@ void MobileController::compute()
       joy_input_.head<2>() = joy_input_.head<2>().normalized();
     }
     Eigen::Vector3d tmp_kp{15000, 15000, 15000};
+    Eigen::Vector3d imp_sp{0.15, 0.15, 0.4};
 
-    x_delta_ = joy_speed_.asDiagonal() * joy_input_;
+    x_delta_ = imp_sp.asDiagonal() * joy_input_;
 
     fd_star_ = tmp_kp.asDiagonal() * x_delta_;
 
