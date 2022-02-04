@@ -20,24 +20,24 @@ tick_(0), play_time_(0.0), hz_(hz), control_mode_("none"), is_mode_changed_(fals
 
   print_tick_ = int(hz_ * 0.5);
 
-  pcv_q.open(       package_path_ + "/save_data/pcv_q.txt");
-  pcv_q_dot.open(   package_path_ + "/save_data/pcv_q_dot.txt");
+  pcv_q.open(       package_path_ + "/data/pcv_q.txt");
+  pcv_q_dot.open(   package_path_ + "/data/pcv_q_dot.txt");
 
-  pcv_qd.open(      package_path_ + "/save_data/pcv_qd.txt");
-  pcv_qd_dot.open(  package_path_ + "/save_data/pcv_qd_dot.txt");
-  pcv_taud.open(    package_path_ + "/save_data/pcv_taud.txt");
-  pcv_tqs.open(     package_path_ + "/save_data/pcv_tqs.txt");
-  pcv_tqe.open(     package_path_ + "/save_data/pcv_tqe.txt");
+  pcv_qd.open(      package_path_ + "/data/pcv_qd.txt");
+  pcv_qd_dot.open(  package_path_ + "/data/pcv_qd_dot.txt");
+  pcv_taud.open(    package_path_ + "/data/pcv_taud.txt");
+  pcv_tqs.open(     package_path_ + "/data/pcv_tqs.txt");
+  pcv_tqe.open(     package_path_ + "/data/pcv_tqe.txt");
 
-  pcv_x.open(       package_path_ + "/save_data/pcv_x.txt");
-  pcv_x_dot.open(   package_path_ + "/save_data/pcv_x_dot.txt");
+  pcv_x.open(       package_path_ + "/data/pcv_x.txt");
+  pcv_x_dot.open(   package_path_ + "/data/pcv_x_dot.txt");
 
-  pcv_xd.open(      package_path_ + "/save_data/pcv_xd.txt");
-  pcv_xd_dot.open(  package_path_ + "/save_data/pcv_xd_dot.txt");
-  pcv_fd_star.open( package_path_ + "/save_data/pcv_fd_star.txt");
-  pcv_fd.open(      package_path_ + "/save_data/pcv_fd.txt");
+  pcv_xd.open(      package_path_ + "/data/pcv_xd.txt");
+  pcv_xd_dot.open(  package_path_ + "/data/pcv_xd_dot.txt");
+  pcv_fd_star.open( package_path_ + "/data/pcv_fd_star.txt");
+  pcv_fd.open(      package_path_ + "/data/pcv_fd.txt");
 
-  pcv_debug.open(   package_path_ + "/save_data/pcv_debug.txt");
+  pcv_debug.open(   package_path_ + "/data/pcv_debug.txt");
 
   std::cout<<"Load Mobile Controller"<<std::endl;
 }

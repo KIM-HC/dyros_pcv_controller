@@ -32,4 +32,4 @@
 *.app
 
 .vscode
-save_data
+data
