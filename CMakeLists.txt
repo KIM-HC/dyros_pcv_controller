@@ -21,11 +21,13 @@ catkin_package(
 
 find_package(PkgConfig QUIET)
 find_package(Eigen3 REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIR}   
+  ${EIGEN3_INCLUDE_DIR}
+  ${YAML_CPP_INCLUDE_DIR}
 )
 
 add_definitions (-DNON_MATLAB_PARSING)
@@ -46,9 +48,10 @@ set (SOURCES
 
 add_executable(dyros_pcv_controller ${SOURCES})
 
-target_link_libraries(dyros_pcv_controller	
+target_link_libraries(dyros_pcv_controller
 	pthread
 	rt
+  ${YAML_CPP_LIBRARIES}
   ${catkin_LIBRARIES}
 )
 

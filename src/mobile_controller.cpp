@@ -90,10 +90,39 @@ void MobileController::compute()
   }
 
   if(control_mode_ == "op_control") {
-    // x_target_ << 1.0, 0.0, 0.0;
-    x_target_ << 0.0, -0.5, 0.0;
-    // x_target_ << 0.0, 0.0, M_PI_2;
-    duration_ = 40.0 * (x_init_ - x_target_).norm();
+    x_target_ = x_init_ + target_1;
+    duration_ = (x_init_ - x_target_).head<2>().norm() / op_max_speed_(0);
+    if (duration_ < (x_init_ - x_target_).tail<1>().norm() / op_max_speed_(1)) {
+      duration_ = (x_init_ - x_target_).tail<1>().norm() / op_max_speed_(1);
+    }
+
+    for(int i = 0; i < 3; i ++) {
+      Eigen::Vector3d quintic_temp;
+      quintic_temp = DyrosMath::quinticSpline(play_time_, control_start_time_, control_start_time_ + duration_, x_init_(i), x_dot_init_(i), 0.0, x_target_(i), 0.0, 0.0);     
+
+      xd_(i)      = quintic_temp(0);
+      xd_dot_(i)  = quintic_temp(1);
+      xd_ddot_(i) = quintic_temp(2);
+    }
+
+    x_delta_ = xd_ - x_;
+    x_dot_delta_ = xd_dot_ - x_dot_;
+
+    fd_star_ = xd_ddot_
+                 + Kp_task.asDiagonal() * x_delta_
+                 + Kv_task.asDiagonal() * x_dot_delta_;
+
+    taud_ = Jcpt_ * (Lambda_ * fd_star_ + Mu_);  // with Mu
+    // taud_ = Jcpt_ *  Lambda_ * fd_star_ ;        // without Mu
+    taud_ = weight_.asDiagonal() * taud_;
+  }
+
+  else if(control_mode_ == "op_control_2") {
+    x_target_ = x_init_ + target_2;
+    duration_ = (x_init_ - x_target_).head<2>().norm() / op_max_speed_(0);
+    if (duration_ < (x_init_ - x_target_).tail<1>().norm() / op_max_speed_(1)) {
+      duration_ = (x_init_ - x_target_).tail<1>().norm() / op_max_speed_(1);
+    }
 
     for(int i = 0; i < 3; i ++) {
       Eigen::Vector3d quintic_temp;
@@ -275,6 +304,9 @@ void MobileController::initClass()
   weight_.setZero();
 
   joy_speed_.setZero();
+  op_max_speed_.setZero();
+  target_1.setZero();
+  target_2.setZero();
 
   initMode();
 }
@@ -321,34 +353,27 @@ void MobileController::setMode(const std::string & mode)
   control_mode_ = mode;
   std::cout << "Current mode (changed) : " << mode << std::endl;
 
-  std::ifstream mode_setter(package_path_ + "/setting/basic_setting.txt");
-  std::string dummy;
-  mode_setter >> dummy;
-  for (int i = 0; i < N_CASTERS*2; i++) {mode_setter >> Kp_joint(i);}
+  YAML::Node yam_ = YAML::LoadFile(package_path_ + "/setting/setting.yaml");
+  Kp_joint = VectorQd(yam_["Kp_joint"].as<std::vector<double>>().data());
+  Kv_joint = VectorQd(yam_["Kv_joint"].as<std::vector<double>>().data());
+  weight_ = VectorQd(yam_["weight"].as<std::vector<double>>().data());
+  target_1 = Eigen::Vector3d(yam_["target_1"].as<std::vector<double>>().data());
+  target_2 = Eigen::Vector3d(yam_["target_2"].as<std::vector<double>>().data());
+  op_max_speed_ = Eigen::Vector2d(yam_["op_max_speed"].as<std::vector<double>>().data());
+  Kp_E_ = yam_["Kp_E"].as<double>();
 
-  mode_setter >> dummy;
-  for (int i = 0; i < N_CASTERS*2; i++) {mode_setter >> Kv_joint(i);}
 
-  mode_setter >> dummy;
-  for (int i = 0; i < 3; i++) {mode_setter >> Kp_task(i);}
-
-  mode_setter >> dummy;
-  for (int i = 0; i < 3; i++) {mode_setter >> Kv_task(i);}
-
-  mode_setter >> dummy; mode_setter >> Kp_E_;
-
-  mode_setter >> dummy;
-  for (int i = 0; i < N_CASTERS*2; i++) {mode_setter >> weight_(i);}
-
-  mode_setter >> dummy;
-  for (int i = 0; i < 3; i++) {mode_setter >> joy_speed_(i);}
+  Eigen::Vector2d tmp_;
+  tmp_ = Eigen::Vector2d(yam_["Kp_task"].as<std::vector<double>>().data());
+  Kp_task = Eigen::Vector3d(tmp_(0), tmp_(0), tmp_(1));
+  tmp_ = Eigen::Vector2d(yam_["Kv_task"].as<std::vector<double>>().data());
+  Kv_task = Eigen::Vector3d(tmp_(0), tmp_(0), tmp_(1));
+  tmp_ = Eigen::Vector2d(yam_["joy_speed"].as<std::vector<double>>().data());
+  joy_speed_ = Eigen::Vector3d(tmp_(0), tmp_(0), tmp_(1));
 
   veh_.Add_Solid(0.0, 0.0, -additional_mass_, 0.0);
-  mode_setter >> dummy;
-  mode_setter >> additional_mass_;
+  additional_mass_ = yam_["carry_mass"].as<double>();
   veh_.Add_Solid(0.0, 0.0, additional_mass_, 0.0);
-
-  mode_setter.close();
 
   if (control_mode_ == "wheel_control" || control_mode_ == "steer_init" ||
       control_mode_ == "steer_control" || control_mode_ == "none") {
@@ -366,6 +391,8 @@ void MobileController::setMode(const std::string & mode)
   std::cout << "   weight: " << weight_.transpose() << std::endl;
   std::cout << "joy_speed: " << joy_speed_.transpose() << std::endl;
   std::cout << "     mass: " << additional_mass_ << std::endl;
+  std::cout << " target_1: " << target_1.transpose() << std::endl;
+  std::cout << " target_2: " << target_2.transpose() << std::endl;
 }
 
 VectorQd MobileController::setDesiredJointTorque(){ return taud_; }

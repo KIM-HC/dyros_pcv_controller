@@ -5,6 +5,7 @@
 #include <Eigen/Dense>
 #include <memory>
 #include <fstream>
+#include "yaml-cpp/yaml.h"
 #include "math_type_define.h"
 #include "pcv_mtx_utils.h"
 #include "vehicle.h"
@@ -48,6 +49,8 @@ class MobileController
 
         // OP-SPACE PARAMETERS(i.e., mobile base)
         //                      pos               vel         acc
+        Eigen::Vector3d     target_1;
+        Eigen::Vector3d     target_2;
         Eigen::Vector3d           x_,           x_dot_,    x_ddot_;     // local coordinate
         Eigen::Vector3d          gx_,          gx_dot_,   gx_ddot_;     // global coordinate
         Eigen::Vector3d          xd_,          xd_dot_,   xd_ddot_;     // desired
@@ -68,8 +71,8 @@ class MobileController
         double              heading_;
 
         Eigen::Vector3d           joy_input_;
-        Eigen::Vector3d           joy_speed_;
-
+        Eigen::Vector3d                     joy_speed_;
+        Eigen::Vector2d                  op_max_speed_;
 
         // VIRTUAL LINKAGE MODEL
         double Kp_E_;

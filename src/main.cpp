@@ -36,11 +36,12 @@ int main(int argc, char **argv)
 			switch (key)
 			{
 				MODE('o', "op_control")
+				MODE('p', "op_control_2")
 				MODE('t', "joy_control_test")
 				MODE('j', "joy_control")
-				MODE('s', "steer_control")
-				MODE('i', "steer_init")
-				MODE('w', "wheel_control")
+				// MODE('s', "steer_control")
+				// MODE('i', "steer_init")
+				// MODE('w', "wheel_control")
 				MODE('n', "none")
 				case 'h':
 					mc.setMode("none");
