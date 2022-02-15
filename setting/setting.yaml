@@ -3,16 +3,16 @@ carry_mass: 0.0
 
 ## targets for operational control
 ##            X    Y  theta
-target_1:   [0.5, 0.0, 0.0]
-target_2:   [-0.5, 0.0, 0.0]
+target_1:   [0.4, 0.0, 0.0]
+target_2:   [-0.4, 0.0, 0.0]
 
 ## gains for control
 ##             1        2       3       4       5       6       7       8
 Kp_joint:   [2200.0,  1300.0, 2000.0, 1300.0, 2200.0, 1300.0, 2200.0, 1300.0]
 Kv_joint:   [10.0,    3.0,    10.0,   3.0,    10.0,   3.0,    10.0,   3.0]
 ##            X,Y      theta
-Kp_task:    [10000.0, 10000.0]
-Kv_task:    [200.0,   200.0]
+Kp_task:    [36100.0, 27225.0]
+Kv_task:    [21.93931026,   9.949874371066198]
 ## gain for internal force (resist slip)
 Kp_E:       100.0
 
@@ -22,7 +22,7 @@ weight:     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 ## maximum speed for joystick and operational control command
 ##               X,Y    theta
 joy_speed:      [0.10,   0.30]
-op_max_speed:   [0.05,   0.05]
+op_max_speed:   [0.04,   0.04]
 
 
 # KPx_ = 1200; KVx_ = 4; KPa_ = 1100; KVa_ = 2; KpE_ = 170;   //  70.0; //  75.0;
