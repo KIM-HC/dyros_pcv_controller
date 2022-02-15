@@ -49,6 +49,7 @@ class MobileController
 
         // OP-SPACE PARAMETERS(i.e., mobile base)
         //                      pos               vel         acc
+        Eigen::Vector3d    target_op;
         Eigen::Vector3d     target_1;
         Eigen::Vector3d     target_2;
         Eigen::Vector3d           x_,           x_dot_,    x_ddot_;     // local coordinate

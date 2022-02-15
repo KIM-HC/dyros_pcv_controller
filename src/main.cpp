@@ -35,14 +35,20 @@ int main(int argc, char **argv)
 			int key = getchar();
 			switch (key)
 			{
-				MODE('o', "op_control")
-				MODE('p', "op_control_2")
 				MODE('t', "joy_control_test")
 				MODE('j', "joy_control")
 				// MODE('s', "steer_control")
 				// MODE('i', "steer_init")
 				// MODE('w', "wheel_control")
 				MODE('n', "none")
+				case 'o':
+					mc.target_op = mc.target_1;
+					mc.setMode("op_control");
+					break;
+				case 'p':
+					mc.target_op = mc.target_2;
+					mc.setMode("op_control");
+					break;
 				case 'h':
 					mc.setMode("none");
 					rn.homingPublisher();

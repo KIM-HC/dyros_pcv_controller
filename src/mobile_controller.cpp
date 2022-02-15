@@ -20,24 +20,24 @@ tick_(0), play_time_(0.0), hz_(hz), control_mode_("none"), is_mode_changed_(fals
 
   print_tick_ = int(hz_ * 0.5);
 
-  pcv_q.open(       package_path_ + "/data/pcv_q.txt");
-  pcv_q_dot.open(   package_path_ + "/data/pcv_q_dot.txt");
+  pcv_q.open(       package_path_ + "/data/raw/pcv_q.txt");
+  pcv_q_dot.open(   package_path_ + "/data/raw/pcv_q_dot.txt");
 
-  pcv_qd.open(      package_path_ + "/data/pcv_qd.txt");
-  pcv_qd_dot.open(  package_path_ + "/data/pcv_qd_dot.txt");
-  pcv_taud.open(    package_path_ + "/data/pcv_taud.txt");
-  pcv_tqs.open(     package_path_ + "/data/pcv_tqs.txt");
-  pcv_tqe.open(     package_path_ + "/data/pcv_tqe.txt");
+  pcv_qd.open(      package_path_ + "/data/raw/pcv_qd.txt");
+  pcv_qd_dot.open(  package_path_ + "/data/raw/pcv_qd_dot.txt");
+  pcv_taud.open(    package_path_ + "/data/raw/pcv_taud.txt");
+  pcv_tqs.open(     package_path_ + "/data/raw/pcv_tqs.txt");
+  pcv_tqe.open(     package_path_ + "/data/raw/pcv_tqe.txt");
 
-  pcv_x.open(       package_path_ + "/data/pcv_x.txt");
-  pcv_x_dot.open(   package_path_ + "/data/pcv_x_dot.txt");
+  pcv_x.open(       package_path_ + "/data/raw/pcv_x.txt");
+  pcv_x_dot.open(   package_path_ + "/data/raw/pcv_x_dot.txt");
 
-  pcv_xd.open(      package_path_ + "/data/pcv_xd.txt");
-  pcv_xd_dot.open(  package_path_ + "/data/pcv_xd_dot.txt");
-  pcv_fd_star.open( package_path_ + "/data/pcv_fd_star.txt");
-  pcv_fd.open(      package_path_ + "/data/pcv_fd.txt");
+  pcv_xd.open(      package_path_ + "/data/raw/pcv_xd.txt");
+  pcv_xd_dot.open(  package_path_ + "/data/raw/pcv_xd_dot.txt");
+  pcv_fd_star.open( package_path_ + "/data/raw/pcv_fd_star.txt");
+  pcv_fd.open(      package_path_ + "/data/raw/pcv_fd.txt");
 
-  pcv_debug.open(   package_path_ + "/data/pcv_debug.txt");
+  pcv_debug.open(   package_path_ + "/data/raw/pcv_debug.txt");
 
   std::cout<<"Load Mobile Controller"<<std::endl;
 }
@@ -90,35 +90,7 @@ void MobileController::compute()
   }
 
   if(control_mode_ == "op_control") {
-    x_target_ = x_init_ + target_1;
-    duration_ = (x_init_ - x_target_).head<2>().norm() / op_max_speed_(0);
-    if (duration_ < (x_init_ - x_target_).tail<1>().norm() / op_max_speed_(1)) {
-      duration_ = (x_init_ - x_target_).tail<1>().norm() / op_max_speed_(1);
-    }
-
-    for(int i = 0; i < 3; i ++) {
-      Eigen::Vector3d quintic_temp;
-      quintic_temp = DyrosMath::quinticSpline(play_time_, control_start_time_, control_start_time_ + duration_, x_init_(i), x_dot_init_(i), 0.0, x_target_(i), 0.0, 0.0);     
-
-      xd_(i)      = quintic_temp(0);
-      xd_dot_(i)  = quintic_temp(1);
-      xd_ddot_(i) = quintic_temp(2);
-    }
-
-    x_delta_ = xd_ - x_;
-    x_dot_delta_ = xd_dot_ - x_dot_;
-
-    fd_star_ = xd_ddot_
-                 + Kp_task.asDiagonal() * x_delta_
-                 + Kv_task.asDiagonal() * x_dot_delta_;
-
-    taud_ = Jcpt_ * (Lambda_ * fd_star_ + Mu_);  // with Mu
-    // taud_ = Jcpt_ *  Lambda_ * fd_star_ ;        // without Mu
-    taud_ = weight_.asDiagonal() * taud_;
-  }
-
-  else if(control_mode_ == "op_control_2") {
-    x_target_ = x_init_ + target_2;
+    x_target_ = x_init_ + target_op;
     duration_ = (x_init_ - x_target_).head<2>().norm() / op_max_speed_(0);
     if (duration_ < (x_init_ - x_target_).tail<1>().norm() / op_max_speed_(1)) {
       duration_ = (x_init_ - x_target_).tail<1>().norm() / op_max_speed_(1);
@@ -307,6 +279,7 @@ void MobileController::initClass()
   op_max_speed_.setZero();
   target_1.setZero();
   target_2.setZero();
+  target_op.setZero();
 
   initMode();
 }
@@ -431,7 +404,11 @@ void MobileController::printState()
       std::cout << "   x_dot: " << x_dot_.transpose() << std::endl;
       std::cout << "      xd: " << xd_.transpose() << std::endl;
       std::cout << "  xd_dot: " << xd_dot_.transpose() << std::endl;
-      std::cout << " x_delta: " << x_delta_.transpose() << std::endl;
+      Eigen::Vector3d tmp_del;
+      tmp_del = x_delta_;
+      tmp_del(2) *= RAD2DEG;
+      std::cout << "del(deg): " << tmp_del.transpose() << std::endl;
+      std::cout << "del(rad): " << x_delta_.transpose() << std::endl;
       std::cout << "x_ddelta: " << x_dot_delta_.transpose() << std::endl;
       std::cout << "      Mu: " << Mu_.transpose() << std::endl;
     }
