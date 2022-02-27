@@ -1,41 +1,38 @@
 ## additional mass if any object is placed over PCV(Powered Caster Vehicle)
 carry_mass: 0.0
 
-## targets for operational control
-##            X    Y  theta
-target_1:   [0.4, 0.0, 0.0]
-target_2:   [-0.4, 0.0, 0.0]
-
-## gains for control
-##             1        2       3       4       5       6       7       8
-Kp_joint:   [2200.0,  1300.0, 2000.0, 1300.0, 2200.0, 1300.0, 2200.0, 1300.0]
-Kv_joint:   [10.0,    3.0,    10.0,   3.0,    10.0,   3.0,    10.0,   3.0]
-##            X,Y      theta
-Kp_task:    [36100.0, 27225.0]
-Kv_task:    [21.93931026,   9.949874371066198]
-## gain for internal force (resist slip)
-Kp_E:       100.0
-
-## weighting factor for torque
-weight:     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+## multiplier for changing current to torque
+multiplier: 100.0
 
 ## maximum speed for joystick and operational control command
 ##               X,Y    theta
 joy_speed:      [0.10,   0.30]
 op_max_speed:   [0.04,   0.04]
 
+## targets for operational control
+##            X    Y  theta
+target_1:   [0.4, 0.0, 0.0]
+target_2:   [-0.4, 0.0, 0.0]
+
+## weighting factor for torque
+weight:     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+
+
+
+
+
+
+## gains for control
+##             1     2      3      4      5      6      7      8
+Kp_joint:   [50.0,  50.0,  50.0,  50.0,  50.0,  50.0,  50.0,  50.0]
+Kv_joint:   [ 1.0,   1.0,   1.0,   1.0,   1.0,   1.0,   1.0,   1.0]
+##            X,Y      theta
+Kp_task:    [1200.0,   1100.0]
+Kv_task:    [   4.0,      2.0]
+## gain for internal force (resist slip)
+Kp_E:       170.0
 
 # KPx_ = 1200; KVx_ = 4; KPa_ = 1100; KVa_ = 2; KpE_ = 170;   //  70.0; //  75.0;
 
 # Kp_joint    1300 1300 1300 1300 1500 1300 1500 1300
 # Kv_joint    3    3    3    3    3    3    3    3 
-# Kp_task     4000  4000  4000
-# Kv_task     3     3     2
-# weight_     1.12  1.05  1.02  1.00  1.07  1.00  1.05  1.00
-# weight_     1.00  1.00  1.00  1.00  1.00  1.00  1.00  1.00
-
-# Kp_task     7000    7000    7000
-# Kv_task     10      10      10
-
-
-

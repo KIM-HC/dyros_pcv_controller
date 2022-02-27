@@ -25,6 +25,7 @@ class RosNode
         VectorQd getCurrentJointVelocity();
         VectorQd getCurrentJointTorque();
         Eigen::Vector3d getJoyInput();
+        bool updated_first{false};
 
     private:
         void jointCallback(const sensor_msgs::JointState::ConstPtr& msg);

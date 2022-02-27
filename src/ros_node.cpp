@@ -35,6 +35,7 @@ void RosNode::jointCallback(const sensor_msgs::JointState::ConstPtr& msg) {
         q_dot_(controller_r) = msg->velocity[canopen_r];
         tau_(controller_r) = msg->effort[canopen_r];
     }
+    updated_first = true;
 }
 
 void RosNode::joyCallback(const sensor_msgs::Joy::ConstPtr& msg) {

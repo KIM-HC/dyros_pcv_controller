@@ -8,7 +8,6 @@ int main(int argc, char **argv)
 {
 	const double hz = 300.0 ;
 	std::string pkg_path = ros::package::getPath("dyros_pcv_controller");
-	MobileController mc(hz, pkg_path);
 	bool is_simulation_run = true;
 	bool exit_flag = false;
 	bool is_first = true;
@@ -17,6 +16,16 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh;
 	ros::Rate loop_rate(hz);
 	RosNode rn(nh);
+	while(!rn.updated_first) {
+		loop_rate.sleep();
+		if (ros::isShuttingDown()) {
+			break;
+			rn.stopPublisher();
+			is_simulation_run = false;
+			exit_flag = true;
+		}
+	}
+	MobileController mc(hz, pkg_path, rn.getCurrentJointAngle());
 
 	while (!ros::isShuttingDown() && !exit_flag)
 	{

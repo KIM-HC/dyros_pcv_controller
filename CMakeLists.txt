@@ -40,10 +40,12 @@ set (SOURCES
   src/vehicle.cpp
   src/mobile_controller.cpp
   src/ros_node.cpp
+  src/filter.cpp
   
   include/math_type_define.h
   include/linux_terminal_tool
   include/pcv_mtx_utils.h
+  include/filter.h
 )
 
 add_executable(dyros_pcv_controller ${SOURCES})

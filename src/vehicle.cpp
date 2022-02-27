@@ -427,28 +427,35 @@ Vector3d Vehicle::Fill_tqS(VectorQd const &qd, VectorQd const &tq, VectorQd &tqS
 {
   // Experimental function to compute operational force to compensate for
   // rotational friction of the wheel contact patches.
+  // qd: q dot              tq: torque
+  // atq: absolute torque   frd: 
+  // SUFFIX M: multiplication factor (?)
 
   int i,j;
   double m,b,frd,atq,tqX;
 //   double bM[4] = {0.35, 0.57, 0.35, 0.57};
 //   double mM[4] = {0.21, 0.17, 0.21, 0.17};
 //   double tqM   = 0.35;
+  // double rdM   = 25.0;
+  // double bM[4] = {0.20, 0.50, 0.20, 0.50};
+  // double mM[4] = {0.10, 0.10, 0.10, 0.10};
+  // double tqM   = 0.60;
   double rdM   = 25.0;
-  double bM[4] = {0.20, 0.50, 0.20, 0.50};
+  double bM[4] = {0.20, 0.20, 0.20, 0.20};
   double mM[4] = {0.10, 0.10, 0.10, 0.10};
   double tqM   = 0.60;
 
   double tqA = 0.0;
   static Vector3d fS = Vector3d::Zero();
-
+    
   for(i=0; i<N_CASTERS; i++)
   { j = 2*i;
     frd = 1.0 - fabs(qd[j+1])/rdM;
     b = bM[i]*frd;
     m = mM[i]*frd;
     atq = fabs(tq[j]);
-    tqX = atq<tqM ? atq/tqM : 1.0;
-    tqS[j] = (m*qd[j] + (qd[j]>0?b:-b)) * tqX;
+    tqX = atq<tqM ? atq/tqM : 1.0;  // if (atq<tqM) {atq/tqM}; else {1.0;};
+    tqS[j] = (m*qd[j] + (qd[j]>0?b:-b)) * tqX;  // if (qd[j]>0) {b}; else {-b};
     tqA += tqS[j];
   }
 
