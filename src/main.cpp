@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 			exit_flag = true;
 		}
 	}
-	MobileController mc(hz, pkg_path, rn.getCurrentJointAngle());
+	MobileController mc(hz, pkg_path);
 
 	while (!ros::isShuttingDown() && !exit_flag)
 	{
@@ -51,11 +51,11 @@ int main(int argc, char **argv)
 				// MODE('w', "wheel_control")
 				MODE('n', "none")
 				case 'o':
-					mc.target_op = mc.target_1;
+					mc.is_target_1 = true;
 					mc.setMode("op_control");
 					break;
 				case 'p':
-					mc.target_op = mc.target_2;
+					mc.is_target_1 = false;
 					mc.setMode("op_control");
 					break;
 				case 'h':

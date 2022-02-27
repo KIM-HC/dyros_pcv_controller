@@ -2,23 +2,24 @@
 carry_mass: 0.0
 
 ## multiplier for changing current to torque
-multiplier: 100.0
+multiplier: 50.0
 
 ## maximum speed for joystick and operational control command
-##               X,Y    theta
-joy_speed:      [0.10,   0.30]
-op_max_speed:   [0.04,   0.04]
+##               X,Y    theta(in RADIAN)
+joy_speed:      [0.04,   0.11]
+op_max_speed:   [0.03,   0.1]
 
 ## targets for operational control
-##            X    Y  theta
-target_1:   [0.4, 0.0, 0.0]
-target_2:   [-0.4, 0.0, 0.0]
+##            X    Y  theta(in DEGREE)
+target_1:   [0.6, 0.0, 0.0]  # 'o'
+target_2:   [-0.6, 0.0, 0.0] # 'p'
+global_target_1:   [0.3, 0.2, 90.0]  # 'o'
+global_target_2:   [0.0, 0.0, 0.0] # 'p'
+
+plan_global: True
 
 ## weighting factor for torque
 weight:     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-
-
-
 
 
 
@@ -27,8 +28,12 @@ weight:     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 Kp_joint:   [50.0,  50.0,  50.0,  50.0,  50.0,  50.0,  50.0,  50.0]
 Kv_joint:   [ 1.0,   1.0,   1.0,   1.0,   1.0,   1.0,   1.0,   1.0]
 ##            X,Y      theta
-Kp_task:    [1200.0,   1100.0]
-Kv_task:    [   4.0,      2.0]
+Kp_task:    [1200.0,   1400.0]
+Kv_task:    [   4.0,      5.0]
+
+# ##            X,Y      theta
+# Kp_task:    [36100.0, 27225.0]
+# Kv_task:    [21.93931026,   9.949874371066198]
 ## gain for internal force (resist slip)
 Kp_E:       170.0
 

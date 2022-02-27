@@ -1,8 +1,8 @@
 #include "mobile_controller.h"
 
 
-MobileController::MobileController(const double hz, const std::string pkg_path, VectorQd q) : 
-tick_(0), play_time_(0.0), hz_(hz), control_mode_("none"), is_mode_changed_(false), dt_(1/hz), package_path_(pkg_path), q_(q)
+MobileController::MobileController(const double hz, const std::string pkg_path) : 
+tick_(0), play_time_(0.0), hz_(hz), control_mode_("none"), is_mode_changed_(false), dt_(1/hz), package_path_(pkg_path)
 {
   veh_.Add_Solid(  0.000,  0.000,  XR_Mv, XR_Iv);
   // // angle info is not used --> use home_offset for canopen
@@ -32,6 +32,9 @@ tick_(0), play_time_(0.0), hz_(hz), control_mode_("none"), is_mode_changed_(fals
   pcv_x.open(       package_path_ + "/data/raw/pcv_x.txt");
   pcv_x_dot.open(   package_path_ + "/data/raw/pcv_x_dot.txt");
 
+  pcv_gx.open(       package_path_ + "/data/raw/pcv_gx.txt");
+  pcv_gx_dot.open(   package_path_ + "/data/raw/pcv_gx_dot.txt");
+
   pcv_xd.open(      package_path_ + "/data/raw/pcv_xd.txt");
   pcv_xd_dot.open(  package_path_ + "/data/raw/pcv_xd_dot.txt");
   pcv_fd_star.open( package_path_ + "/data/raw/pcv_fd_star.txt");
@@ -52,17 +55,20 @@ void MobileController::compute()
   Jt_ = J_.transpose();
   Jcpt_ = Jcp_.transpose();
 
+  double freq_test = 500.0;
   // BEGIN ODOMETRY SECTION
-  q_dot_ = Fq_dot_.Filt(rq_dot_);
+  q_dot_filter_ = DyrosMath::lowPassFilter(q_dot_, q_dot_prev_, dt_, freq_test);
+  q_dot_ = q_dot_filter_;
 
   // FIND LOCAL OPERATIONAL SPEEDS
   rx_dot_ = Jcp_ * q_dot_;      // RAW LOCAL OP SPEEDS
+  x_dot_filter_ = DyrosMath::lowPassFilter(rx_dot_, x_dot_prev_, dt_, freq_test);
+  x_dot_ = x_dot_filter_;       // LOCAL SPEED (ALSO FOR DYN)
   x_ += rx_dot_ * dt_;      // "LOCAL" COORDS
-  x_dot_ = Fxd_.Filt(rx_dot_);  // LOCAL SPEED (ALSO FOR DYN)
 
   // DELTA: MAP LOCAL --> GLOBAL COORDS
   // TODO: why multiply 0.5 ???
-  heading_ = gx_(2) + 0.5 * rx_dot_(2) * dt_;  // USE raw x dot
+  heading_ = gx_(2) + rx_dot_(2) * dt_;  // USE raw x dot
   rot_(0,0) =  cos(heading_);
   rot_(0,1) = -sin(heading_);
   rot_(1,0) =  sin(heading_);
@@ -70,8 +76,9 @@ void MobileController::compute()
   rgx_dot_ = rot_ * rx_dot_;    // RAW GLOBAL OP SPEEDS
 
   // INTEGRATION TO GLOBAL COORDS
+  gx_dot_filter_ = DyrosMath::lowPassFilter(rgx_dot_, gx_dot_prev_, dt_, freq_test);
+  gx_dot_ = gx_dot_filter_;       // GLOBAL SPEED (ALSO FOR DYN)
   gx_ += rgx_dot_ * dt_;
-  gx_dot_ = Fgx_dot_.Filt(rgx_dot_);  // GLOBAL SPEED (ALSO FOR DYN)
 
   // END ODOMETRY SECTION
 
@@ -89,27 +96,53 @@ void MobileController::compute()
   }
 
   if(control_mode_ == "op_control") {
-    x_target_ = x_init_ + target_op;
-    duration_ = (x_init_ - x_target_).head<2>().norm() / op_max_speed_(0);
-    if (duration_ < (x_init_ - x_target_).tail<1>().norm() / op_max_speed_(1)) {
-      duration_ = (x_init_ - x_target_).tail<1>().norm() / op_max_speed_(1);
+    if (is_plan_global) {
+      x_target_ = target_op;
+      duration_ = (gx_init_ - x_target_).head<2>().norm() / op_max_speed_(0);
+      if (duration_ < (gx_init_ - x_target_).tail<1>().norm() / op_max_speed_(1)) {
+        duration_ = (gx_init_ - x_target_).tail<1>().norm() / op_max_speed_(1);
+      }
+
+      for(int i = 0; i < 3; i ++) {
+        Eigen::Vector3d quintic_temp;
+        quintic_temp = DyrosMath::quinticSpline(play_time_, control_start_time_, control_start_time_ + duration_, gx_init_(i), gx_dot_init_(i), 0.0, x_target_(i), 0.0, 0.0);     
+
+        xd_(i)      = quintic_temp(0);
+        xd_dot_(i)  = quintic_temp(1);
+        xd_ddot_(i) = quintic_temp(2);
+      }
+
+      // in GLOBAL FRAME
+      x_delta_ = xd_ - gx_;
+      x_dot_delta_ = xd_dot_ - gx_dot_;
+      gfd_star_ = xd_ddot_
+                  + Kp_task.asDiagonal() * x_delta_
+                  + Kv_task.asDiagonal() * x_dot_delta_;
+      fd_star_ = rot_.transpose() * gfd_star_;
+    }
+    else {
+      x_target_ = x_init_ + target_op;
+      duration_ = (x_init_ - x_target_).head<2>().norm() / op_max_speed_(0);
+      if (duration_ < (x_init_ - x_target_).tail<1>().norm() / op_max_speed_(1)) {
+        duration_ = (x_init_ - x_target_).tail<1>().norm() / op_max_speed_(1);
+      }
+
+      for(int i = 0; i < 3; i ++) {
+        Eigen::Vector3d quintic_temp;
+        quintic_temp = DyrosMath::quinticSpline(play_time_, control_start_time_, control_start_time_ + duration_, x_init_(i), x_dot_init_(i), 0.0, x_target_(i), 0.0, 0.0);     
+
+        xd_(i)      = quintic_temp(0);
+        xd_dot_(i)  = quintic_temp(1);
+        xd_ddot_(i) = quintic_temp(2);
+      }
+
+      x_delta_ = xd_ - x_;
+      x_dot_delta_ = xd_dot_ - x_dot_;
+      fd_star_ = xd_ddot_
+                  + Kp_task.asDiagonal() * x_delta_
+                  + Kv_task.asDiagonal() * x_dot_delta_;
     }
 
-    for(int i = 0; i < 3; i ++) {
-      Eigen::Vector3d quintic_temp;
-      quintic_temp = DyrosMath::quinticSpline(play_time_, control_start_time_, control_start_time_ + duration_, x_init_(i), x_dot_init_(i), 0.0, x_target_(i), 0.0, 0.0);     
-
-      xd_(i)      = quintic_temp(0);
-      xd_dot_(i)  = quintic_temp(1);
-      xd_ddot_(i) = quintic_temp(2);
-    }
-
-    x_delta_ = xd_ - x_;
-    x_dot_delta_ = xd_dot_ - x_dot_;
-
-    fd_star_ = xd_ddot_
-                 + Kp_task.asDiagonal() * x_delta_
-                 + Kv_task.asDiagonal() * x_dot_delta_;
 
     dAmp_ = Jcpt_ * (Lambda_ * fd_star_ + Mu_);  // with Mu
     // dAmp_ = Jcpt_ *  Lambda_ * fd_star_ ;        // without Mu
@@ -138,12 +171,9 @@ void MobileController::compute()
     if (joy_input_.head<2>().norm() > 1.0) {
       joy_input_.head<2>() = joy_input_.head<2>().normalized();
     }
-    Eigen::Vector3d tmp_kp{15000, 15000, 15000};
-    Eigen::Vector3d imp_sp{0.15, 0.15, 0.4};
+    x_delta_ = joy_speed_.asDiagonal() * joy_input_;
 
-    x_delta_ = imp_sp.asDiagonal() * joy_input_;
-
-    fd_star_ = tmp_kp.asDiagonal() * x_delta_;
+    fd_star_ = Kp_task.asDiagonal() * x_delta_;
 
     dAmp_ = Jcpt_ * (Lambda_ * fd_star_ + Mu_);  // with Mu
     // dAmp_ = Jcpt_ *  Lambda_ * fd_star_ ;        // without Mu
@@ -205,36 +235,30 @@ void MobileController::compute()
   }
 
   else {
-    // tau_null_ = 5.0*(q_init_ - q_) + 0.1*(q_dot_init_ - q_dot_init_);
-    // tau_null_ = (Eigen::Matrix8d::Identity() - Jcpt_*Jcp_)*tau_null_;
-
-    // fd_star_ = 20*(x_init_ - x_) + 10*(x_dot_init_ - x_dot_);
-    // dAmp_ = Jcpt_*(Lambda_*fd_star_ + Mu_) + tau_null_;
-
     dAmp_.setZero();
   }
 
   // STEERING FRICTION COMPENSATION
   veh_.Fill_tqS(q_dot_, dAmp_, rtqS_);
-  tqS_ = FtqS_.Filt(rtqS_);
+  tqS_ = DyrosMath::lowPassFilter(rtqS_, tqS_, dt_, 50.0);
   dAmp_ += tqS_;
 
-  // INTERNAL FORCE COMPUTATION
-  // If one wheel is in the air, use virtual truss and redundant info. to control it correctly
-  if(true) {
-    veh_.Fill_E_q( E_ );
-    // PROJECT TO 'E'-SPACE AND THEN BACK TO JT-SPACE
-    q_dot_null_ = q_dot_ - q_dot_hat_;  // NULL SPACE WHEEL SPEEDS
-    rtE_ = E_ * q_dot_null_  ;    // RAW SLIP (INTERNAL VELs)
-    tE_ = FtE_.Filt(rtE_);
-    ctE_ = Kp_E_ * tE_; // CONTROL FORCES to RESIST SLIP
-    tqE_ * E_.transpose() * ctE_;   // MAP TO JOINT TORQUES
-    dAmp_ += tqE_;
-  }
+  // // INTERNAL FORCE COMPUTATION
+  // // If one wheel is in the air, use virtual truss and redundant info. to control it correctly
+  // if(true) {
+  //   veh_.Fill_E_q( E_ );
+  //   // PROJECT TO 'E'-SPACE AND THEN BACK TO JT-SPACE
+  //   q_dot_null_ = q_dot_ - q_dot_hat_;  // NULL SPACE WHEEL SPEEDS
+  //   rtE_ = E_ * q_dot_null_  ;    // RAW SLIP (INTERNAL VELs)
+  //   tE_ = DyrosMath::lowPassFilter(rtE_, tE_, 1/hz_, 5.0); //
+  //   ctE_ = Kp_E_ * tE_; // CONTROL FORCES to RESIST SLIP
+  //   tqE_ * E_.transpose() * ctE_;   // MAP TO JOINT TORQUES
+  //   dAmp_ += tqE_;
+  // }
 
-  // change from current to torque
   taud_ = multiplier_ * dAmp_;
 
+  prev();
   printState();
   saveState();
 
@@ -252,7 +276,6 @@ void MobileController::initClass()
 
   heading_ = 0.0;
   additional_mass_ = 0.0;
-  multiplier_ = 0.0;
   is_op_ctrl = false;
 
   x_.setZero();
@@ -267,6 +290,9 @@ void MobileController::initClass()
   xd_dot_.setZero();
   xd_ddot_.setZero();
 
+  gx_prev_.setZero();
+  gx_dot_prev_.setZero();
+
   Kp_joint.setZero();
   Kv_joint.setZero();
   Kp_task.setZero();
@@ -277,47 +303,20 @@ void MobileController::initClass()
   op_max_speed_.setZero();
   target_1.setZero();
   target_2.setZero();
+  gtarget_1.setZero();
+  gtarget_2.setZero();
   target_op.setZero();
 
-  q_ = rq_;
-  q_dot_ = rq_dot_;
-
-  // //filter selection (according to servo freq. of 500Hz), working for hz>=350hz
-  // FQD=150; FQDv=15, FQDDv=15; FGXD=52; FCXDD=0; FTE=30; FXD=52; FTQS=42;
-  double const FQD  =   45;
-  double const FGXD =   45;
-  double const FCXDD=    0;
-  double const FTE  =   -1; // 20;
-  double const FXD  =   45;
-  double const FTQS =   30;
-
-  Fq_dot_.LowPass(q_dot_, hz_, FQD);
-  Fgx_dot_.LowPass(rgx_dot_, hz_, FGXD);
-  Fcx_ddot.LowPass(cx_ddot_, hz_, FCXDD);
-
-  Eigen::VectorXd b(5),a(5);
-  b[4] =  1.0;
-  b[3] = -3.1065490382;
-  b[2] =  4.4126617316;
-  b[1] = -3.1065490382;
-  b[0] =  1.0;
-  a[4] =  0.7008967812;
-  a[3] = -2.3681639156;
-  a[2] =  3.6670730371;
-  a[1] = -2.8327533240;
-  a[0] =  1.0; // NOT USED
-  FtE_.Z_NumDen(rtE_, b, a, rtE_);  // NOTCH
-
-  Fxd_.LowPass(rx_dot_, hz_, FXD);
-  FtqS_.LowPass(rtqS_, hz_, FTQS);
+  fd_star_.setZero();
+  gfd_star_.setZero();
 
   initMode();
 }
 
 void MobileController::initMode()
 {
-  dAmp_.setZero();
   taud_.setZero();
+  dAmp_.setZero();
   rtqS_.setZero();
   tqS_.setZero();
   tqE_.setZero();
@@ -338,11 +337,20 @@ void MobileController::initMode()
   x_init_ = x_;
   x_dot_init_ = x_dot_;
 
+  gx_init_ = gx_;
+  gx_dot_init_ = gx_dot_;
+
   xd_ = x_init_;
   xd_dot_ = x_dot_init_;
 
+  x_prev_ = x_;
+  x_dot_prev_ = x_dot_;
+
   q_init_ = q_;
   q_dot_init_ = q_dot_;
+
+  q_prev_ = q_;
+  q_dot_prev_ = q_dot_;
 }
 
 void MobileController::setMode(const std::string & mode)
@@ -357,9 +365,17 @@ void MobileController::setMode(const std::string & mode)
   weight_ = VectorQd(yam_["weight"].as<std::vector<double>>().data());
   target_1 = Eigen::Vector3d(yam_["target_1"].as<std::vector<double>>().data());
   target_2 = Eigen::Vector3d(yam_["target_2"].as<std::vector<double>>().data());
+  gtarget_1 = Eigen::Vector3d(yam_["global_target_1"].as<std::vector<double>>().data());
+  gtarget_2 = Eigen::Vector3d(yam_["global_target_2"].as<std::vector<double>>().data());
+  target_1(2) *= DEG2RAD;
+  target_2(2) *= DEG2RAD;
+  gtarget_1(2) *= DEG2RAD;
+  gtarget_2(2) *= DEG2RAD;
   op_max_speed_ = Eigen::Vector2d(yam_["op_max_speed"].as<std::vector<double>>().data());
   Kp_E_ = yam_["Kp_E"].as<double>();
   multiplier_ = yam_["multiplier"].as<double>();
+  is_plan_global = yam_["plan_global"].as<bool>();
+
 
   Eigen::Vector2d tmp_;
   tmp_ = Eigen::Vector2d(yam_["Kp_task"].as<std::vector<double>>().data());
@@ -381,17 +397,29 @@ void MobileController::setMode(const std::string & mode)
     is_op_ctrl = true;
   }
 
-  std::cout << "  Kp_joint: " << Kp_joint.transpose() << std::endl;
-  std::cout << "  Kv_joint: " << Kv_joint.transpose() << std::endl;
-  std::cout << "   Kp_task: " << Kp_task.transpose() << std::endl;
-  std::cout << "   Kv_task: " << Kv_task.transpose() << std::endl;
-  std::cout << "      Kp_E: " << Kp_E_ << std::endl;
-  std::cout << "    weight: " << weight_.transpose() << std::endl;
-  std::cout << " joy_speed: " << joy_speed_.transpose() << std::endl;
-  std::cout << "      mass: " << additional_mass_ << std::endl;
-  std::cout << "  target_1: " << target_1.transpose() << std::endl;
-  std::cout << "  target_2: " << target_2.transpose() << std::endl;
-  std::cout << "multiplier: " << multiplier_ << std::endl;
+  if (is_target_1) {
+    if (is_plan_global) {target_op = gtarget_1;}
+    else {target_op = target_1;}
+  }
+  else {
+    if (is_plan_global) {target_op = gtarget_2;}
+    else {target_op = target_2;}
+  }
+
+  std::cout << "   Kp_joint: " << Kp_joint.transpose() << std::endl;
+  std::cout << "   Kv_joint: " << Kv_joint.transpose() << std::endl;
+  std::cout << "    Kp_task: " << Kp_task.transpose() << std::endl;
+  std::cout << "    Kv_task: " << Kv_task.transpose() << std::endl;
+  std::cout << "       Kp_E: " << Kp_E_ << std::endl;
+  std::cout << "     weight: " << weight_.transpose() << std::endl;
+  std::cout << "  joy_speed: " << joy_speed_.transpose() << std::endl;
+  std::cout << "       mass: " << additional_mass_ << std::endl;
+  std::cout << "   target_1: " << target_1.transpose() << std::endl;
+  std::cout << "   target_2: " << target_2.transpose() << std::endl;
+  std::cout << "  gtarget_1: " << gtarget_1.transpose() << std::endl;
+  std::cout << "  gtarget_2: " << gtarget_2.transpose() << std::endl;
+  std::cout << " multiplier: " << multiplier_ << std::endl;
+  std::cout << "plan_global: " << is_plan_global << std::endl;
 }
 
 void MobileController::printState()
@@ -404,21 +432,22 @@ void MobileController::printState()
     std::cout << "    mode: " << control_mode_ << std::endl;
     std::cout << "run time: " << play_time_- control_start_time_ << std::endl;
     std::cout << "duration: " << duration_ << std::endl;
-    if (is_op_ctrl) {
-      std::cout << "  x_init: " << x_init_.transpose() << std::endl;
-      std::cout << "       x: " << x_.transpose() << std::endl;
-      std::cout << "   x_dot: " << x_dot_.transpose() << std::endl;
-      std::cout << "      xd: " << xd_.transpose() << std::endl;
-      std::cout << "  xd_dot: " << xd_dot_.transpose() << std::endl;
-      Eigen::Vector3d tmp_del;
-      tmp_del = x_delta_;
-      tmp_del(2) *= RAD2DEG;
-      std::cout << "del(deg): " << tmp_del.transpose() << std::endl;
-      std::cout << "del(rad): " << x_delta_.transpose() << std::endl;
-      std::cout << "x_ddelta: " << x_dot_delta_.transpose() << std::endl;
-      std::cout << "      Mu: " << Mu_.transpose() << std::endl;
-    }
-    else {
+    std::cout << "x_target: " << x_target_.transpose() << std::endl;
+    std::cout << "  x_init: " << x_init_.transpose() << std::endl;
+    std::cout << "       x: " << x_.transpose() << std::endl;
+    std::cout << "   x_dot: " << x_dot_.transpose() << std::endl;
+    std::cout << "      gx: " << gx_.transpose() << std::endl;
+    std::cout << "  gx_dot: " << gx_dot_.transpose() << std::endl;
+    std::cout << "      xd: " << xd_.transpose() << std::endl;
+    std::cout << "  xd_dot: " << xd_dot_.transpose() << std::endl;
+    Eigen::Vector3d tmp_del;
+    tmp_del = x_delta_;
+    tmp_del(2) *= RAD2DEG;
+    std::cout << "del(deg): " << tmp_del.transpose() << std::endl;
+    std::cout << "del(rad): " << x_delta_.transpose() << std::endl;
+    std::cout << "x_ddelta: " << x_dot_delta_.transpose() << std::endl;
+    std::cout << "      Mu: " << Mu_.transpose() << std::endl;
+    if (!is_op_ctrl) {
       std::cout << "  q_init: " << q_init_.transpose() << std::endl;
       std::cout << "       q: " << q_.transpose() << std::endl;
       std::cout << "   q_dot: " << q_dot_.transpose() << std::endl;
@@ -432,6 +461,7 @@ void MobileController::printState()
     std::cout << "    tqS_: " << tqS_.transpose() << std::endl;
     std::cout << "    tqE_: " << tqE_.transpose() << std::endl;
     // std::cout << "t_n : " << tau_null_.transpose() << std::endl;
+    if (is_plan_global) {std::cout << "gfd_star: " << gfd_star_.transpose() << std::endl;}
     std::cout << " fd_star: " << fd_star_.transpose() << std::endl;
     std::cout << "      Fd: " << (Lambda_ * fd_star_).transpose() << std::endl;
     // std::cout << "L:\n" << Lambda_ << std::endl;      
@@ -459,6 +489,9 @@ void MobileController::saveState()
   pcv_x       << x_.transpose().format(tab_format)                    << std::endl;
   pcv_x_dot   << x_dot_.transpose().format(tab_format)                << std::endl;
 
+  pcv_gx       << gx_.transpose().format(tab_format)                    << std::endl;
+  pcv_gx_dot   << gx_dot_.transpose().format(tab_format)                << std::endl;
+
   pcv_xd      << xd_.transpose().format(tab_format)                   << std::endl;
   pcv_xd_dot  << xd_dot_.transpose().format(tab_format)               << std::endl;
   pcv_fd_star << fd_star_.transpose().format(tab_format)              << std::endl;
@@ -470,8 +503,8 @@ VectorQd MobileController::setDesiredJointTorque(){ return taud_; }
 
 void MobileController::readJoint(const VectorQd &q, const VectorQd &q_dot, const VectorQd &tau)
 {
-    rq_ = q;
-    rq_dot_ = q_dot;
+    q_ = q;
+    q_dot_ = q_dot;
     tau_ = tau;
 }
 
@@ -484,4 +517,27 @@ void MobileController::setInitialJoint(const VectorQd &q, const VectorQd &q_dot)
 {
   q_init_ = q;
   q_dot_init_ = q_dot;
+}
+
+void MobileController::prev()
+{
+  q_prev_ = q_;
+  q_dot_prev_ = q_dot_filter_;
+
+  x_prev_ = x_;
+  x_dot_prev_ = x_dot_filter_;
+
+  gx_dot_prev_ = gx_dot_filter_; 
+
+}
+
+void MobileController::doLowPassFilter()
+{
+  // q_ = DyrosMath::lowPassFilter(q_, q_prev_, 1/hz_, 50.0);
+  q_dot_filter_ = DyrosMath::lowPassFilter(q_dot_, q_dot_prev_, 1/hz_, 10.0);
+  // x_ = DyrosMath::lowPassFilter(x_, x_prev_, 1/hz_, 50.0);
+  x_dot_filter_ = DyrosMath::lowPassFilter(x_dot_, x_dot_prev_, 1/hz_, 10.0);
+
+  q_dot_ = q_dot_filter_;
+  x_dot_ = x_dot_filter_;
 }

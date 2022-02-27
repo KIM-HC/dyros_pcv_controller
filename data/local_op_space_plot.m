@@ -16,7 +16,7 @@ N = length(x);
 t = 0:N-1;
 t = t/300;
 
-chn = 3;
+chn = 4;
 
 figure(1)
 subplot(chn,1,1)
@@ -40,7 +40,7 @@ grid on
 if chn == 4
     subplot(chn,1,3)
     plot(t, x(:,3), 'LineWidth',2)
-    title('position Z')
+    title('position Theta')
     hold on
     plot(t, xd(:,3), 'LineWidth',2,'LineStyle','--');
     legend({'real','desired'},'Location','southwest')
