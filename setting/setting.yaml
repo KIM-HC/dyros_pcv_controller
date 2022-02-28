@@ -2,19 +2,19 @@
 carry_mass: 0.0
 
 ## multiplier for changing current to torque
-multiplier: 50.0
+multiplier: 50.0  ## 50.0
 
 ## maximum speed for joystick and operational control command
 ##               X,Y    theta(in RADIAN)
 joy_speed:      [0.04,   0.11]
-op_max_speed:   [0.03,   0.1]
+op_max_speed:   [0.1,   0.3]
 
 ## targets for operational control
 ##            X    Y  theta(in DEGREE)
 target_1:   [0.6, 0.0, 0.0]  # 'o'
 target_2:   [-0.6, 0.0, 0.0] # 'p'
-global_target_1:   [0.3, 0.2, 90.0]  # 'o'
-global_target_2:   [0.0, 0.0, 0.0] # 'p'
+global_target_1:   [0.0, 0.0, 0.0]  # 'o'
+global_target_2:   [-1.5, 0.0, 0.0] # 'p'
 
 plan_global: True
 

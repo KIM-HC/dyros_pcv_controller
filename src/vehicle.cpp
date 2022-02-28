@@ -62,15 +62,15 @@ void Vehicle::Add_Caster(int idx, double _Kx, double _Ky, double _ang,
                          double _Ns, double _Nt, double _Nw,
                          double _px, double _py, double _Mp, double _Ip)
 {
-  cstr_[idx].Kx  = _Kx;
-  cstr_[idx].Ky  = _Ky;
-  cstr_[idx].ang = _ang;
-  
+  cstr_[idx] = Caster(_Kx, _Ky, _ang, _b, _r);
+
   std::cout<<"================"<<std::endl;
   std::cout<<"Add "<<idx<<"th caster"<<std::endl;
-  std::cout<<"Kx  : "<<_Kx<<std::endl;
-  std::cout<<"Ky  : "<<_Ky<<std::endl;
-  std::cout<<"ang : "<<_ang<<std::endl;
+  std::cout<<"Kx    : "<<cstr_[idx].Kx<<std::endl;
+  std::cout<<"Ky    : "<<cstr_[idx].Ky<<std::endl;
+  std::cout<<"ang   : "<<cstr_[idx].ang<<std::endl;
+  std::cout<<"offset: "<<cstr_[idx].b<<std::endl;
+  std::cout<<"radius: "<<cstr_[idx].r<<std::endl;
   Add_Gross(_Kx, _Ky, _Mf + _Mp, _Ih + _Ii + _Is + _It + _Ij); // approximate only
 }
 
@@ -78,9 +78,10 @@ void Vehicle::JointRad(VectorQd &q)
 {
   for(int i = 0; i < N_CASTERS; i ++)
   {
-    cstr_[i].a = q(2*i);
-    cstr_[i].s = sin(q(2*i));
-    cstr_[i].c = cos(q(2*i));
+    double cali_q = q(2*i) + cstr_[i].ang;
+    cstr_[i].a = cali_q;
+    cstr_[i].s = sin(cali_q);
+    cstr_[i].c = cos(cali_q);
   }
 }
 

@@ -25,6 +25,8 @@ class MobileController
         void compute();
         void setMode(const std::string & mode);
         void updateTime(double dt);
+        void resetOpSpace();
+        void startFollowTarget();
 
         VectorQd setDesiredJointTorque();
 
@@ -106,13 +108,15 @@ class MobileController
         double multiplier_;
 
         std::string control_mode_, package_path_;
-        bool is_mode_changed_, is_op_ctrl, is_plan_global, is_target_1;
+        bool is_mode_changed_, is_op_ctrl, is_plan_global, is_target_1, is_follow_target{false};
 
     private:        
         void printState();
         void saveState();
         void prev();
         void doLowPassFilter();
+        int current_target;
+        std::vector<Eigen::Vector3d> targets;
 
         // TODO: make it to add date
 

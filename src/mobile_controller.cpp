@@ -5,16 +5,17 @@ MobileController::MobileController(const double hz, const std::string pkg_path) 
 tick_(0), play_time_(0.0), hz_(hz), control_mode_("none"), is_mode_changed_(false), dt_(1/hz), package_path_(pkg_path)
 {
   veh_.Add_Solid(  0.000,  0.000,  XR_Mv, XR_Iv);
-  // // angle info is not used --> use home_offset for canopen
-  // veh_.Add_Caster(0,  XR_l,  XR_w, 0.5*M_PI_2); // front left 
-  // veh_.Add_Caster(1,  XR_l, -XR_w, 3.5*M_PI_2); // front right
-  // veh_.Add_Caster(2, -XR_l, -XR_w, 2.5*M_PI_2); // rear right
-  // veh_.Add_Caster(3, -XR_l,  XR_w, 1.5*M_PI_2); // rear left
 
-  veh_.Add_Caster(0,  XR_l,  XR_w, 0.0); // front left 
-  veh_.Add_Caster(1,  XR_l, -XR_w, 0.0); // front right
-  veh_.Add_Caster(2, -XR_l, -XR_w, 0.0); // rear right
-  veh_.Add_Caster(3, -XR_l,  XR_w, 0.0); // rear left
+  YAML::Node yam_ = YAML::LoadFile(package_path_ + "/setting/pcv_parameter.yaml");
+  int id = yam_["pcv_index"].as<int>();
+  for (int idx=0; idx<4; idx++) {
+    double _kx = yam_[id][idx]["steer_point"][0].as<double>();
+    double _ky = yam_[id][idx]["steer_point"][1].as<double>();
+    double _ang = yam_[id][idx]["angle_error_rad"].as<double>();
+    double _b = yam_[id][idx]["wheel_offset"].as<double>();
+    double _r = yam_[id][idx]["wheel_radius"].as<double>();
+    veh_.Add_Caster(idx, _kx, _ky, _ang, _b, _r);
+  }
 
   initClass();
 
@@ -264,6 +265,21 @@ void MobileController::compute()
 
   tick_++;
   play_time_ = tick_ * dt_;	// second
+
+  if ((play_time_- control_start_time_ > duration_ + 1.0) && is_follow_target) {
+    std::cout << "\n\n\n\n\nCHANGING TARGET\n";
+    current_target++;
+    if (current_target == targets.size()) {
+      std::cout << "END OF TARGET!! EXITING!\n";
+      is_follow_target = false;
+      setMode("none");
+    }
+    else {
+      std::cout << "NEXT INDEX: " << current_target << std::endl;
+      setMode("op_control");
+    }
+  }
+
 }
 
 void MobileController::initClass()
@@ -278,11 +294,9 @@ void MobileController::initClass()
   additional_mass_ = 0.0;
   is_op_ctrl = false;
 
-  x_.setZero();
   x_dot_.setZero();
   x_ddot_.setZero();
 
-  gx_.setZero();
   gx_dot_.setZero();
   gx_ddot_.setZero();
 
@@ -290,7 +304,6 @@ void MobileController::initClass()
   xd_dot_.setZero();
   xd_ddot_.setZero();
 
-  gx_prev_.setZero();
   gx_dot_prev_.setZero();
 
   Kp_joint.setZero();
@@ -310,6 +323,7 @@ void MobileController::initClass()
   fd_star_.setZero();
   gfd_star_.setZero();
 
+  resetOpSpace();
   initMode();
 }
 
@@ -351,6 +365,34 @@ void MobileController::initMode()
 
   q_prev_ = q_;
   q_dot_prev_ = q_dot_;
+}
+
+void MobileController::resetOpSpace()
+{
+  x_.setZero();
+  gx_.setZero();
+  x_init_.setZero();
+  gx_init_.setZero();
+  xd_.setZero();
+}
+
+void MobileController::startFollowTarget()
+{
+  resetOpSpace();
+  is_follow_target = true;
+  current_target = 0;
+  targets.clear();
+  YAML::Node yam_ = YAML::LoadFile(package_path_ + "/setting/targets.yaml");
+  int index = yam_["target_index"].as<int>();
+  int target_len = yam_[index]["total_targets"].as<int>();
+  std::cout << "\ntotal targets: " << target_len << std::endl;
+  for (int idx=0; idx<target_len; idx++) {
+    Eigen::Vector3d test_vec = Eigen::Vector3d(yam_[index]["targets"][idx].as<std::vector<double>>().data());
+    test_vec(2) *= DEG2RAD;
+    targets.push_back(test_vec);
+    std::cout << targets[idx].transpose() << std::endl;
+  }
+  setMode("op_control");
 }
 
 void MobileController::setMode(const std::string & mode)
@@ -397,13 +439,18 @@ void MobileController::setMode(const std::string & mode)
     is_op_ctrl = true;
   }
 
-  if (is_target_1) {
-    if (is_plan_global) {target_op = gtarget_1;}
-    else {target_op = target_1;}
+  if (is_follow_target) {
+    target_op = targets[current_target];
   }
   else {
-    if (is_plan_global) {target_op = gtarget_2;}
-    else {target_op = target_2;}
+    if (is_target_1) {
+      if (is_plan_global) {target_op = gtarget_1;}
+      else {target_op = target_1;}
+    }
+    else {
+      if (is_plan_global) {target_op = gtarget_2;}
+      else {target_op = target_2;}
+    }
   }
 
   std::cout << "   Kp_joint: " << Kp_joint.transpose() << std::endl;
@@ -414,6 +461,7 @@ void MobileController::setMode(const std::string & mode)
   std::cout << "     weight: " << weight_.transpose() << std::endl;
   std::cout << "  joy_speed: " << joy_speed_.transpose() << std::endl;
   std::cout << "       mass: " << additional_mass_ << std::endl;
+  std::cout << "  target_op: " << target_op.transpose() << std::endl;
   std::cout << "   target_1: " << target_1.transpose() << std::endl;
   std::cout << "   target_2: " << target_2.transpose() << std::endl;
   std::cout << "  gtarget_1: " << gtarget_1.transpose() << std::endl;

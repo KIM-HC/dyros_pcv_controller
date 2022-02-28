@@ -1,0 +1,137 @@
+
+pcv_index: 0
+## angle error, x, y, offset, wheel radius
+## angle error: (measured(ESTIMATED) - calculated(TRUE)) -> substract it to measured than it will be true
+0:
+  ## BASIC
+  0:
+    angle_error_deg: 0.0
+    angle_error_rad: 0.0
+    steer_point: [0.215, 0.125]
+    wheel_offset: -0.020
+    wheel_radius: 0.055
+  1:
+    angle_error_deg: 0.0
+    angle_error_rad: 0.0
+    steer_point: [0.215, -0.125]
+    wheel_offset: -0.020
+    wheel_radius: 0.055
+  2:
+    angle_error_deg: 0.0
+    angle_error_rad: 0.0
+    steer_point: [-0.215, -0.125]
+    wheel_offset: -0.020
+    wheel_radius: 0.055
+  3:
+    angle_error_deg: 0.0
+    angle_error_rad: 0.0
+    steer_point: [-0.215, 0.125]
+    wheel_offset: -0.020
+    wheel_radius: 0.055
+
+1:
+  0:
+    angle_error_deg: -0.5788317006876984
+    angle_error_rad: -0.010102518991918663
+    steer_point: [0.21553169197048777, 0.12724839378655342]
+    wheel_offset: -0.02158344529974575
+    wheel_radius: 0.0556823606916062
+  1:
+    angle_error_deg: 2.641725102950566
+    angle_error_rad: 0.04610680097907355
+    steer_point: [0.21712150489627416, -0.12380123526591279]
+    wheel_offset: -0.01995942652974895
+    wheel_radius: 0.05658980245255835
+  2:
+    angle_error_deg: 4.83591124924542
+    angle_error_rad: 0.08440257363356474
+    steer_point: [-0.21561371200584795, -0.12465832053695594]
+    wheel_offset: -0.02056662761589067
+    wheel_radius: 0.05745153096078893
+  3:
+    angle_error_deg: 0.6637950380486384
+    angle_error_rad: 0.011585408972349776
+    steer_point: [-0.21571315941334704, 0.12712979219745912]
+    wheel_offset: -0.02000872769535798
+    wheel_radius: 0.05675784956560055
+
+2:
+  0:
+    angle_error_deg: 4.232552238546492
+    angle_error_rad: 0.07387197232529275
+    steer_point: [0.21689754349915244, 0.12624400349375228]
+    wheel_offset: -0.02050036088950365
+    wheel_radius: 0.05659900417148352
+  1:
+    angle_error_deg: 3.0676854771245905
+    angle_error_rad: 0.0535412119914373
+    steer_point: [0.2164632686458908, -0.12451177377529236]
+    wheel_offset: -0.021098426468405332
+    wheel_radius: 0.055857806679157615
+  2:
+    angle_error_deg: 0.5725421694595241
+    angle_error_rad: 0.009992745963580019
+    steer_point: [-0.2173051873161677, -0.1249494933785219]
+    wheel_offset: -0.020030856292312483
+    wheel_radius: 0.055005224955325074
+  3:
+    angle_error_deg: 4.675760960286808
+    angle_error_rad: 0.08160742379321662
+    steer_point: [-0.21559174992360358, 0.1256085720961009]
+    wheel_offset: -0.019598343890513972
+    wheel_radius: 0.05524861556536922
+
+3:
+  0:
+    angle_error_deg: 4.48834946518737
+    angle_error_rad: 0.07833647614764622
+    steer_point: [0.21681570823327, 0.12571056522566462]
+    wheel_offset: -0.019757704472551717
+    wheel_radius: 0.05661189837781903
+  1:
+    angle_error_deg: 1.387734522526706
+    angle_error_rad: 0.024220536561682438
+    steer_point: [0.2154874737753669, -0.1246527493275192]
+    wheel_offset: -0.020830884122006413
+    wheel_radius: 0.05586499281780367
+  2:
+    angle_error_deg: 0.7226091612199612
+    angle_error_rad: 0.012611909068362848
+    steer_point: [-0.21672724959635348, -0.12555352452385343]
+    wheel_offset: -0.019973256547854628
+    wheel_radius: 0.055313480023037175
+  3:
+    angle_error_deg: 4.129993317186018
+    angle_error_rad: 0.07208198147025852
+    steer_point: [-0.21460620812375886, 0.1276882962780936]
+    wheel_offset: -0.020487219678696107
+    wheel_radius: 0.05543342224210074
+
+4:
+  0:
+    angle_error_deg: 1.6910125808716703
+    angle_error_rad: 0.02951373722885753
+    steer_point: [0.21630094346655707, 0.12687369536080922]
+    wheel_offset: -0.020699556644271134
+    wheel_radius: 0.05579064338200151
+  1:
+    angle_error_deg: 2.309655335346013
+    angle_error_rad: 0.04031109018804169
+    steer_point: [0.21642138151569876, -0.12451367220032616]
+    wheel_offset: -0.020161713464867014
+    wheel_radius: 0.05663581606616084
+  2:
+    angle_error_deg: 2.0784109990007424
+    angle_error_rad: 0.03627511514222753
+    steer_point: [-0.216223557846419, -0.1248512798056186]
+    wheel_offset: -0.0199050703915478
+    wheel_radius: 0.05749766683680841
+  3:
+    angle_error_deg: 2.6038258040689057
+    angle_error_rad: 0.045445333429391166
+    steer_point: [-0.21564869365311057, 0.12710017005931962]
+    wheel_offset: -0.02041202357130161
+    wheel_radius: 0.05676206647818689
+
+
+

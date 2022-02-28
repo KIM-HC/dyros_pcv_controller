@@ -16,7 +16,8 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh;
 	ros::Rate loop_rate(hz);
 	RosNode rn(nh);
-	while(!rn.updated_first) {
+	while(false) {
+	// while(!rn.updated_first) {
 		loop_rate.sleep();
 		if (ros::isShuttingDown()) {
 			break;
@@ -44,12 +45,18 @@ int main(int argc, char **argv)
 			int key = getchar();
 			switch (key)
 			{
-				MODE('t', "joy_control_test")
+				case 'r':
+					mc.resetOpSpace();
+					mc.setMode("none");
+					break;
 				MODE('j', "joy_control")
 				// MODE('s', "steer_control")
 				// MODE('i', "steer_init")
 				// MODE('w', "wheel_control")
 				MODE('n', "none")
+				case 't':
+					mc.startFollowTarget();
+					break;
 				case 'o':
 					mc.is_target_1 = true;
 					mc.setMode("op_control");

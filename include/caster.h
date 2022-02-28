@@ -28,7 +28,9 @@ limitations under the License.
 #define XR_l  (0.215)
 #define XR_w  (0.125)
 
-#define XR_b  ( -0.020*0.995) // m ( Dimension * Empirical_Calibration_Factor )
+// offset
+#define XR_b  ( -0.020*1.000) // m ( Dimension * Empirical_Calibration_Factor )
+// wheel radius
 #define XR_r  ( 0.055*1.000) // m ( Dimension * Empirical_Calibration_Factor )
 
 #define XR_f  (-0.010)       // m
