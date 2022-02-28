@@ -266,13 +266,13 @@ void MobileController::compute()
   tick_++;
   play_time_ = tick_ * dt_;	// second
 
-  if ((play_time_- control_start_time_ > duration_ + 1.0) && is_follow_target) {
+  if ((play_time_- control_start_time_ > duration_ + 3.0) && is_follow_target) {
     std::cout << "\n\n\n\n\nCHANGING TARGET\n";
     current_target++;
     if (current_target == targets.size()) {
       std::cout << "END OF TARGET!! EXITING!\n";
       is_follow_target = false;
-      setMode("none");
+      // setMode("none");
     }
     else {
       std::cout << "NEXT INDEX: " << current_target << std::endl;

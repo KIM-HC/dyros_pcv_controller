@@ -78,7 +78,7 @@ void Vehicle::JointRad(VectorQd &q)
 {
   for(int i = 0; i < N_CASTERS; i ++)
   {
-    double cali_q = q(2*i) + cstr_[i].ang;
+    double cali_q = q(2*i) - cstr_[i].ang;
     cstr_[i].a = cali_q;
     cstr_[i].s = sin(cali_q);
     cstr_[i].c = cos(cali_q);
