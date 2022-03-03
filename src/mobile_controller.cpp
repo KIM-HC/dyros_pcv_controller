@@ -8,14 +8,17 @@ tick_(0), play_time_(0.0), hz_(hz), control_mode_("none"), is_mode_changed_(fals
 
   YAML::Node yam_ = YAML::LoadFile(package_path_ + "/setting/pcv_parameter.yaml");
   int id = yam_["pcv_index"].as<int>();
+  q_error_.setZero();
   for (int idx=0; idx<4; idx++) {
     double _kx = yam_[id][idx]["steer_point"][0].as<double>();
     double _ky = yam_[id][idx]["steer_point"][1].as<double>();
-    double _ang = yam_[id][idx]["angle_error_rad"].as<double>();
+    q_error_(2*idx) = yam_[id][idx]["angle_error_rad"].as<double>();
+    double _ang = 0.0;
     double _b = yam_[id][idx]["wheel_offset"].as<double>();
     double _r = yam_[id][idx]["wheel_radius"].as<double>();
     veh_.Add_Caster(idx, _kx, _ky, _ang, _b, _r);
   }
+  std::cout << "angle_error: " << q_error_.transpose() << std::endl;
 
   initClass();
 
@@ -551,9 +554,10 @@ VectorQd MobileController::setDesiredJointTorque(){ return taud_; }
 
 void MobileController::readJoint(const VectorQd &q, const VectorQd &q_dot, const VectorQd &tau)
 {
-    q_ = q;
-    q_dot_ = q_dot;
-    tau_ = tau;
+  // S0 R0 S1 R1 S2 R2 S3 R3
+  q_ = q;
+  q_dot_ = q_dot;
+  tau_ = tau;
 }
 
 void MobileController::readJoy(const Eigen::Vector3d &joy_input)

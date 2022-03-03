@@ -21,7 +21,7 @@ target_index: 2
     - [0.0, 0.0, 0.0]
 
 2:
-  ## UMB MARK 3 meter
+  ## UMB MARK 3 meter 2 lap
   total_targets: 16
   targets:
     - [3.0, 0.0,   0.0]  ## translation 1

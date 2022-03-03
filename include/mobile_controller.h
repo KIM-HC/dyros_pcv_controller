@@ -40,6 +40,7 @@ class MobileController
         VectorQd           q_filter_,    q_dot_filter_;                 // for low pass filter
         VectorQd             q_prev_,      q_dot_prev_;                 // for low pass filter
         VectorQd           q_target_;
+        VectorQd            q_error_;
         VectorQd                            q_dot_hat_;                 // computed by Jacobian
         VectorQd                           q_dot_null_;
         VectorQd                                              tau_;
