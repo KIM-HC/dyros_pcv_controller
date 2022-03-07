@@ -57,45 +57,45 @@ legend({'x','y'},'Location','best')
 hold off
 grid on
 
-% 
-% figure(2)
-% subplot(chn,1,1)
-% plot(t, v(:,1), 'LineWidth',2)
-% title('velocity X')
-% hold on
-% plot(t, vd(:,1), 'LineWidth',2,'LineStyle','--');
-% legend({'real','desired'},'Location','southwest')
-% hold off
-% grid on
-% 
-% subplot(chn,1,2)
-% plot(t, v(:,2), 'LineWidth',2)
-% title('velocity Y')
-% hold on
-% plot(t, vd(:,2), 'LineWidth',2,'LineStyle','--');
-% legend({'real','desired'},'Location','southwest')
-% hold off
-% grid on
-% 
-% if chn == 4
-%     subplot(chn,1,3)
-%     plot(t, v(:,3), 'LineWidth',2)
-%     title('velocity Z')
-%     hold on
-%     plot(t, vd(:,3), 'LineWidth',2,'LineStyle','--');
-%     legend({'real','desired'},'Location','southwest')
-%     hold off
-%     grid on
-% end
-% 
-% subplot(chn,1,chn)
-% plot(t, x_dot_delta(:,1), 'LineWidth',2)
-% title('delta [xd - x]')
-% hold on
-% plot(t, x_dot_delta(:,2), 'LineWidth',2)
-% legend({'x','y'},'Location','best')
-% hold off
-% grid on
+
+figure(2)
+subplot(chn,1,1)
+plot(t, v(:,1), 'LineWidth',2)
+title('velocity X')
+hold on
+plot(t, vd(:,1), 'LineWidth',2,'LineStyle','--');
+legend({'real','desired'},'Location','southwest')
+hold off
+grid on
+
+subplot(chn,1,2)
+plot(t, v(:,2), 'LineWidth',2)
+title('velocity Y')
+hold on
+plot(t, vd(:,2), 'LineWidth',2,'LineStyle','--');
+legend({'real','desired'},'Location','southwest')
+hold off
+grid on
+
+if chn == 4
+    subplot(chn,1,3)
+    plot(t, v(:,3), 'LineWidth',2)
+    title('velocity Z')
+    hold on
+    plot(t, vd(:,3), 'LineWidth',2,'LineStyle','--');
+    legend({'real','desired'},'Location','southwest')
+    hold off
+    grid on
+end
+
+subplot(chn,1,chn)
+plot(t, x_dot_delta(:,1), 'LineWidth',2)
+title('delta [xd - x]')
+hold on
+plot(t, x_dot_delta(:,2), 'LineWidth',2)
+legend({'x','y'},'Location','best')
+hold off
+grid on
 
  
  
