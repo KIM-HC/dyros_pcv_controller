@@ -57,4 +57,27 @@ target_link_libraries(dyros_pcv_controller
   ${catkin_LIBRARIES}
 )
 
+set (ODOM_MAKER
+	src/odom_maker.cpp
+  src/caster.cpp
+  src/vehicle.cpp
+  src/mobile_controller.cpp
+  src/ros_node.cpp
+  src/filter.cpp
+  
+  include/math_type_define.h
+  include/linux_terminal_tool
+  include/pcv_mtx_utils.h
+  include/filter.h
+)
+
+add_executable(dyros_odom_maker ${ODOM_MAKER})
+
+target_link_libraries(dyros_odom_maker
+	pthread
+	rt
+  ${YAML_CPP_LIBRARIES}
+  ${catkin_LIBRARIES}
+)
+
 set(CMAKE_BUILD_TYPE RELEASE)
