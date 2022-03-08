@@ -557,7 +557,7 @@ VectorQd MobileController::setDesiredJointTorque(){ return taud_; }
 void MobileController::readJoint(const VectorQd &q, const VectorQd &q_dot, const VectorQd &tau)
 {
   // S0 R0 S1 R1 S2 R2 S3 R3
-  q_ = q;
+  q_ = q + q_error_;
   q_dot_ = q_dot;
   tau_ = tau;
 }
