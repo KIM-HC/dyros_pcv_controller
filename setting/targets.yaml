@@ -5,6 +5,7 @@ target_index: 2
 0:
   ## TEST IN CORRIDOR 3 meter
   total_targets: 4
+  plan_global: True
   targets:
     - [3.0, 0.0, 0.0]
     - [3.0, 0.0, 180.0]
@@ -14,6 +15,7 @@ target_index: 2
 1:
   ## TEST IN CORRIDOR 4 meter
   total_targets: 4
+  plan_global: True
   targets:
     - [4.0, 0.0, 0.0]
     - [4.0, 0.0, 180.0]
@@ -21,8 +23,9 @@ target_index: 2
     - [0.0, 0.0, 0.0]
 
 2:
-  ## UMB MARK 3 meter 2 lap
+  ## UMB MARK 3 meter 2 lap  ## GLOBAL PLAN
   total_targets: 16
+  plan_global: True
   targets:
     - [3.0, 0.0,   0.0]  ## translation 1
     - [3.0, 0.0,  90.0]  ## rotation 1
@@ -42,23 +45,23 @@ target_index: 2
     - [0.0, 0.0, 720.0]  ## rotation 4
 
 3:
-  ## UMB MARK 4 meter
-  total_targets: 8
+  ## UMB MARK 3 meter 2 lap  ## LOCAL PLAN
+  total_targets: 16
+  plan_global: False
   targets:
-    - [4.0, 0.0,   0.0]  ## translation 1
-    - [4.0, 0.0,  90.0]  ## rotation 1
-    - [4.0, 4.0,  90.0]  ## translation 2
-    - [4.0, 4.0, 180.0]  ## rotation 2
-    - [0.0, 4.0, 180.0]  ## translation 3
-    - [0.0, 4.0, 270.0]  ## rotation 3
-    - [0.0, 0.0, 270.0]  ## translation 4
-    - [0.0, 0.0, 360.0]  ## rotation 4
-
-4:
-  ## TEST IN CORRIDOR 3 meter
-  total_targets: 4
-  targets:
-    - [-1.0, 0.0, 0.0]
-    - [-1.0, 0.0, 180.0]
-    - [0.0, 0.0, 180.0]
-    - [0.0, 0.0, 0.0]
+    - [3.0, 0.0,   0.0]  ## translation 1
+    - [0.0, 0.0,  90.0]  ## rotation 1
+    - [3.0, 0.0,   0.0]  ## translation 2
+    - [0.0, 0.0,  90.0]  ## rotation 2
+    - [3.0, 0.0,   0.0]  ## translation 3
+    - [0.0, 0.0,  90.0]  ## rotation 3
+    - [3.0, 0.0,   0.0]  ## translation 4
+    - [0.0, 0.0,  90.0]  ## rotation 4
+    - [3.0, 0.0,   0.0]  ## translation 1
+    - [0.0, 0.0,  90.0]  ## rotation 1
+    - [3.0, 0.0,   0.0]  ## translation 2
+    - [0.0, 0.0,  90.0]  ## rotation 2
+    - [3.0, 0.0,   0.0]  ## translation 3
+    - [0.0, 0.0,  90.0]  ## rotation 3
+    - [3.0, 0.0,   0.0]  ## translation 4
+    - [0.0, 0.0,  90.0]  ## rotation 4

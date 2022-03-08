@@ -388,6 +388,7 @@ void MobileController::startFollowTarget()
   YAML::Node yam_ = YAML::LoadFile(package_path_ + "/setting/targets.yaml");
   int index = yam_["target_index"].as<int>();
   int target_len = yam_[index]["total_targets"].as<int>();
+  is_follow_target_global = yam_[index]["plan_global"].as<bool>();
   std::cout << "\ntotal targets: " << target_len << std::endl;
   for (int idx=0; idx<target_len; idx++) {
     Eigen::Vector3d test_vec = Eigen::Vector3d(yam_[index]["targets"][idx].as<std::vector<double>>().data());
@@ -444,6 +445,7 @@ void MobileController::setMode(const std::string & mode)
 
   if (is_follow_target) {
     target_op = targets[current_target];
+    is_plan_global = is_follow_target_global;
   }
   else {
     if (is_target_1) {

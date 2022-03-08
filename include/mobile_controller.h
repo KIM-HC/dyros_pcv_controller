@@ -109,7 +109,7 @@ class MobileController
         double multiplier_;
 
         std::string control_mode_, package_path_;
-        bool is_mode_changed_, is_op_ctrl, is_plan_global, is_target_1, is_follow_target{false};
+        bool is_mode_changed_, is_op_ctrl, is_plan_global, is_follow_target_global, is_target_1, is_follow_target{false};
 
     private:        
         void printState();
