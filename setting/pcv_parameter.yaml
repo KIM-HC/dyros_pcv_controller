@@ -1,7 +1,10 @@
 
-pcv_index: 0
+pcv_index: 1
 ## angle error, x, y, offset, wheel radius
 ## angle error: (measured(ESTIMATED) - calculated(TRUE)) -> substract it to measured than it will be true
+## joint data
+# 0308 - 7: og try 1
+
 0:
   ## BASIC
   0:
@@ -30,7 +33,7 @@ pcv_index: 0
     wheel_radius: 0.055
 
 1:
-## 0307 2loop 2section 3point-method
+## 0307 2loop 2section 3point-method CHOSEN
   0:
     angle_error_deg: 0.6348903042608867
     angle_error_rad: 0.011080926198341057
