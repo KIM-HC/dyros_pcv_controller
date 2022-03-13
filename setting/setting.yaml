@@ -6,7 +6,7 @@ multiplier: 70.0  ## 50.0
 
 ## maximum speed for joystick and operational control command
 ##               X,Y    theta(in RADIAN)
-joy_speed:      [0.008,   0.005]
+joy_speed:      [0.02,   0.055]
 op_max_speed:   [0.12,   0.18]
 
 ## targets for operational control

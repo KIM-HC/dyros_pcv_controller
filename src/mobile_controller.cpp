@@ -59,7 +59,7 @@ void MobileController::compute()
   Jt_ = J_.transpose();
   Jcpt_ = Jcp_.transpose();
 
-  double freq_test = 500.0;
+  double freq_test = 200.0;
   // BEGIN ODOMETRY SECTION
   q_dot_filter_ = DyrosMath::lowPassFilter(q_dot_, q_dot_prev_, dt_, freq_test);
   q_dot_ = q_dot_filter_;
@@ -71,7 +71,6 @@ void MobileController::compute()
   x_ += rx_dot_ * dt_;      // "LOCAL" COORDS
 
   // DELTA: MAP LOCAL --> GLOBAL COORDS
-  // TODO: why multiply 0.5 ???
   heading_ = gx_(2) + rx_dot_(2) * dt_;  // USE raw x dot
   rot_(0,0) =  cos(heading_);
   rot_(0,1) = -sin(heading_);
@@ -175,13 +174,16 @@ void MobileController::compute()
     if (joy_input_.head<2>().norm() > 1.0) {
       joy_input_.head<2>() = joy_input_.head<2>().normalized();
     }
-    x_delta_ = joy_speed_.asDiagonal() * joy_input_;
 
-    fd_star_ = Kp_task.asDiagonal() * x_delta_;
+    x_delta_ = joy_speed_.asDiagonal() * joy_input_;
+    Eigen::Vector3d tmp_Kp_{1200.0, 1200.0, 1400.0};
+    fd_star_ = tmp_Kp_.asDiagonal() * x_delta_;
 
     dAmp_ = Jcpt_ * (Lambda_ * fd_star_ + Mu_);  // with Mu
     // dAmp_ = Jcpt_ *  Lambda_ * fd_star_ ;        // without Mu
     dAmp_ = weight_.asDiagonal() * dAmp_;
+    dAmp_ = (80.0 / multiplier_) * dAmp_;
+
   }
 
   else if(control_mode_  == "steer_control") {
@@ -247,18 +249,18 @@ void MobileController::compute()
   tqS_ = DyrosMath::lowPassFilter(rtqS_, tqS_, dt_, 50.0);
   dAmp_ += tqS_;
 
-  // // INTERNAL FORCE COMPUTATION
-  // // If one wheel is in the air, use virtual truss and redundant info. to control it correctly
-  // if(true) {
-  //   veh_.Fill_E_q( E_ );
-  //   // PROJECT TO 'E'-SPACE AND THEN BACK TO JT-SPACE
-  //   q_dot_null_ = q_dot_ - q_dot_hat_;  // NULL SPACE WHEEL SPEEDS
-  //   rtE_ = E_ * q_dot_null_  ;    // RAW SLIP (INTERNAL VELs)
-  //   tE_ = DyrosMath::lowPassFilter(rtE_, tE_, 1/hz_, 5.0); //
-  //   ctE_ = Kp_E_ * tE_; // CONTROL FORCES to RESIST SLIP
-  //   tqE_ * E_.transpose() * ctE_;   // MAP TO JOINT TORQUES
-  //   dAmp_ += tqE_;
-  // }
+  // INTERNAL FORCE COMPUTATION
+  // If one wheel is in the air, use virtual truss and redundant info. to control it correctly
+  if(true) {
+    veh_.Fill_E_q( E_ );
+    // PROJECT TO 'E'-SPACE AND THEN BACK TO JT-SPACE
+    q_dot_null_ = q_dot_ - q_dot_hat_;  // NULL SPACE WHEEL SPEEDS
+    rtE_ = E_ * q_dot_null_  ;    // RAW SLIP (INTERNAL VELs)
+    tE_ = DyrosMath::lowPassFilter(rtE_, tE_, 1/hz_, 10.0); //
+    ctE_ = Kp_E_ * tE_; // CONTROL FORCES to RESIST SLIP
+    tqE_ * E_.transpose() * ctE_;   // MAP TO JOINT TORQUES
+    // dAmp_ += tqE_;
+  }
 
   taud_ = multiplier_ * dAmp_;
 

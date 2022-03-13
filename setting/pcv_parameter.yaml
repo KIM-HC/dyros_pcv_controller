@@ -39,106 +39,106 @@ pcv_index: 1
     angle_error_rad: 0.011080926198341057
     steer_point: [0.21616312402385457, 0.12696090870455162]
     wheel_offset: -0.020390678417116486
-    wheel_radius: 0.053958151296525585
+    wheel_radius: 0.054396019668942155
   1:
     angle_error_deg: 1.5246551826547938
     angle_error_rad: 0.026610252894921693
     steer_point: [0.21652240039412154, -0.12474176225113812]
     wheel_offset: -0.020222345890799857
-    wheel_radius: 0.05547595188898559
+    wheel_radius: 0.05474129242536723
   2:
     angle_error_deg: 0.9764341548697429
     angle_error_rad: 0.017041990931405238
     steer_point: [-0.21621931309528242, -0.1252645143264183]
     wheel_offset: -0.020305506675564786
-    wheel_radius: 0.055961106171217474
+    wheel_radius: 0.05597314315699226
   3:
     angle_error_deg: 1.2153867008816033
     angle_error_rad: 0.021212499615335445
     steer_point: [-0.21666714750096033, 0.12647224774562646]
     wheel_offset: -0.020289691351655186
-    wheel_radius: 0.055634766438475744
+    wheel_radius: 0.05566821240528613
 
-2:
-## 0307 2loop 1section ellipse-method
-  0:
-    angle_error_deg: 0.6345589372945672
-    angle_error_rad: 0.011075142753746436
-    steer_point: [0.21616319735344808, 0.12696087645122453]
-    wheel_offset: -0.020390852256954504
-    wheel_radius: 0.0539580704261896
-  1:
-    angle_error_deg: 1.5260223950852512
-    angle_error_rad: 0.026634115253407364
-    steer_point: [0.21652250365047404, -0.12474095105048753]
-    wheel_offset: -0.020222677480840542
-    wheel_radius: 0.05547583783640327
-  2:
-    angle_error_deg: 0.9732931770006409
-    angle_error_rad: 0.01698717052585713
-    steer_point: [-0.21621728619563035, -0.12526054766929934]
-    wheel_offset: -0.020309922329828783
-    wheel_radius: 0.05596050077555136
-  3:
-    angle_error_deg: 1.214965482362884
-    angle_error_rad: 0.02120514796531342
-    steer_point: [-0.2166673263848399, 0.1264721097949767]
-    wheel_offset: -0.02028983449958663
-    wheel_radius: 0.05563474555642048
+# 2:
+# ## 0307 2loop 1section ellipse-method
+#   0:
+#     angle_error_deg: 0.6345589372945672
+#     angle_error_rad: 0.011075142753746436
+#     steer_point: [0.21616319735344808, 0.12696087645122453]
+#     wheel_offset: -0.020390852256954504
+#     wheel_radius: 0.0539580704261896
+#   1:
+#     angle_error_deg: 1.5260223950852512
+#     angle_error_rad: 0.026634115253407364
+#     steer_point: [0.21652250365047404, -0.12474095105048753]
+#     wheel_offset: -0.020222677480840542
+#     wheel_radius: 0.05547583783640327
+#   2:
+#     angle_error_deg: 0.9732931770006409
+#     angle_error_rad: 0.01698717052585713
+#     steer_point: [-0.21621728619563035, -0.12526054766929934]
+#     wheel_offset: -0.020309922329828783
+#     wheel_radius: 0.05596050077555136
+#   3:
+#     angle_error_deg: 1.214965482362884
+#     angle_error_rad: 0.02120514796531342
+#     steer_point: [-0.2166673263848399, 0.1264721097949767]
+#     wheel_offset: -0.02028983449958663
+#     wheel_radius: 0.05563474555642048
 
-3:
-## 0128 3loop 3section 3point-method
-  0:
-    angle_error_deg: 1.6237315788846938
-    angle_error_rad: 0.02833946222014394
-    steer_point: [0.21607912521651007, 0.12714157646728358]
-    wheel_offset: -0.02057778270561075
-    wheel_radius: 0.0556442037771836
-  1:
-    angle_error_deg: 1.5171316840336246
-    angle_error_rad: 0.026478943072713035
-    steer_point: [0.2161682085194583, -0.12474113574910896]
-    wheel_offset: -0.02019284249616889
-    wheel_radius: 0.05561839588402631
-  2:
-    angle_error_deg: 1.4571315804025184
-    angle_error_rad: 0.025431743712812427
-    steer_point: [-0.216525444404706, -0.12494812992036874]
-    wheel_offset: -0.019784596363584435
-    wheel_radius: 0.05588212518010459
-  3:
-    angle_error_deg: 2.3407275910421297
-    angle_error_rad: 0.040853403355960494
-    steer_point: [-0.21592056760275266, 0.12679537240967065]
-    wheel_offset: -0.020222530861852824
-    wheel_radius: 0.05559071105757412
+# 3:
+# ## 0128 3loop 3section 3point-method
+#   0:
+#     angle_error_deg: 1.6237315788846938
+#     angle_error_rad: 0.02833946222014394
+#     steer_point: [0.21607912521651007, 0.12714157646728358]
+#     wheel_offset: -0.02057778270561075
+#     wheel_radius: 0.0556442037771836
+#   1:
+#     angle_error_deg: 1.5171316840336246
+#     angle_error_rad: 0.026478943072713035
+#     steer_point: [0.2161682085194583, -0.12474113574910896]
+#     wheel_offset: -0.02019284249616889
+#     wheel_radius: 0.05561839588402631
+#   2:
+#     angle_error_deg: 1.4571315804025184
+#     angle_error_rad: 0.025431743712812427
+#     steer_point: [-0.216525444404706, -0.12494812992036874]
+#     wheel_offset: -0.019784596363584435
+#     wheel_radius: 0.05588212518010459
+#   3:
+#     angle_error_deg: 2.3407275910421297
+#     angle_error_rad: 0.040853403355960494
+#     steer_point: [-0.21592056760275266, 0.12679537240967065]
+#     wheel_offset: -0.020222530861852824
+#     wheel_radius: 0.05559071105757412
 
 
 
-4:
-## 0128 3loop 3section ellipse-method
-  0:
-    angle_error_deg: 1.6216612377432478
-    angle_error_rad: 0.02830332795058621
-    steer_point: [0.21607883044348428, 0.1271419222669945]
-    wheel_offset: -0.02057739365873884
-    wheel_radius: 0.05564413426360831
-  1:
-    angle_error_deg: 1.5172787299557349
-    angle_error_rad: 0.026481509508205492
-    steer_point: [0.21616877143243451, -0.12474104721876526]
-    wheel_offset: -0.02019247076569038
-    wheel_radius: 0.05561840764616055
-  2:
-    angle_error_deg: 1.456528477772486
-    angle_error_rad: 0.025421217586190925
-    steer_point: [-0.21652554892945475, -0.12494858460895378]
-    wheel_offset: -0.019784454131787584
-    wheel_radius: 0.055882111080714655
-  3:
-    angle_error_deg: 2.3416570693006324
-    angle_error_rad: 0.04086962581189707
-    steer_point: [-0.21592017307912303, 0.1267950632466343]
-    wheel_offset: -0.020222625232740682
-    wheel_radius: 0.05559059437157647
+# 4:
+# ## 0128 3loop 3section ellipse-method
+#   0:
+#     angle_error_deg: 1.6216612377432478
+#     angle_error_rad: 0.02830332795058621
+#     steer_point: [0.21607883044348428, 0.1271419222669945]
+#     wheel_offset: -0.02057739365873884
+#     wheel_radius: 0.05564413426360831
+#   1:
+#     angle_error_deg: 1.5172787299557349
+#     angle_error_rad: 0.026481509508205492
+#     steer_point: [0.21616877143243451, -0.12474104721876526]
+#     wheel_offset: -0.02019247076569038
+#     wheel_radius: 0.05561840764616055
+#   2:
+#     angle_error_deg: 1.456528477772486
+#     angle_error_rad: 0.025421217586190925
+#     steer_point: [-0.21652554892945475, -0.12494858460895378]
+#     wheel_offset: -0.019784454131787584
+#     wheel_radius: 0.055882111080714655
+#   3:
+#     angle_error_deg: 2.3416570693006324
+#     angle_error_rad: 0.04086962581189707
+#     steer_point: [-0.21592017307912303, 0.1267950632466343]
+#     wheel_offset: -0.020222625232740682
+#     wheel_radius: 0.05559059437157647
 

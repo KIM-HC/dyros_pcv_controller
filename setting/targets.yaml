@@ -23,7 +23,7 @@ target_index: 3
     - [0.0, 0.0, 0.0]
 
 2:
-  ## UMB MARK 3 meter 2 lap  ## GLOBAL PLAN
+  ## UMB MARK 3 meter 2 lap
   total_targets: 16
   plan_global: True
   targets:
@@ -45,7 +45,7 @@ target_index: 3
     - [0.0, 0.0, 720.0]  ## rotation 4
 
 3:
-  ## UMB MARK 3 meter 2 lap  ## LOCAL PLAN
+  ## CCW SPIN ## UMB MARK 3 meter 2 lap
   total_targets: 16
   plan_global: False
   targets:
@@ -65,3 +65,52 @@ target_index: 3
     - [0.0, 0.0,  90.0]  ## rotation 3
     - [2.5, 0.0,   0.0]  ## translation 4
     - [0.0, 0.0,  90.0]  ## rotation 4
+4:
+  ## CW SPIN ## UMB MARK 3 meter 2 lap
+  total_targets: 16
+  plan_global: False
+  targets:
+    - [2.5, 0.0,   0.0]  ## translation 1
+    - [0.0, 0.0,  -90.0]  ## rotation 1
+    - [2.5, 0.0,   0.0]  ## translation 2
+    - [0.0, 0.0,  -90.0]  ## rotation 2
+    - [2.5, 0.0,   0.0]  ## translation 3
+    - [0.0, 0.0,  -90.0]  ## rotation 3
+    - [2.5, 0.0,   0.0]  ## translation 4
+    - [0.0, 0.0,  -90.0]  ## rotation 4
+    - [2.5, 0.0,   0.0]  ## translation 1
+    - [0.0, 0.0,  -90.0]  ## rotation 1
+    - [2.5, 0.0,   0.0]  ## translation 2
+    - [0.0, 0.0,  -90.0]  ## rotation 2
+    - [2.5, 0.0,   0.0]  ## translation 3
+    - [0.0, 0.0,  -90.0]  ## rotation 3
+    - [2.5, 0.0,   0.0]  ## translation 4
+    - [0.0, 0.0,  -90.0]  ## rotation 4
+
+5:
+  ## CCW NO-SPIN ## UMB MARK 3 meter 2 lap
+  total_targets: 8
+  plan_global: False
+  targets:
+    - [2.5, 0.0,   0.0]  ## translation 1
+    - [0.0, 2.5,   0.0]  ## translation 2
+    - [-2.5,0.0,   0.0]  ## translation 3
+    - [0.0,-2.5,   0.0]  ## translation 4
+    - [2.5, 0.0,   0.0]  ## translation 1
+    - [0.0, 2.5,   0.0]  ## translation 2
+    - [-2.5,0.0,   0.0]  ## translation 3
+    - [0.0,-2.5,   0.0]  ## translation 4
+
+6:
+  ## CW NO-SPIN ## UMB MARK 3 meter 2 lap
+  total_targets: 8
+  plan_global: False
+  targets:
+    - [2.5, 0.0,   0.0]  ## translation 1
+    - [0.0,-2.5,   0.0]  ## translation 2
+    - [-2.5,0.0,   0.0]  ## translation 3
+    - [0.0, 2.5,   0.0]  ## translation 4
+    - [2.5, 0.0,   0.0]  ## translation 1
+    - [0.0,-2.5,   0.0]  ## translation 2
+    - [-2.5,0.0,   0.0]  ## translation 3
+    - [0.0, 2.5,   0.0]  ## translation 4
