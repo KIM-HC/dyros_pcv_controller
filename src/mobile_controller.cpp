@@ -249,18 +249,18 @@ void MobileController::compute()
   tqS_ = DyrosMath::lowPassFilter(rtqS_, tqS_, dt_, 50.0);
   dAmp_ += tqS_;
 
-  // INTERNAL FORCE COMPUTATION
-  // If one wheel is in the air, use virtual truss and redundant info. to control it correctly
-  if(true) {
-    veh_.Fill_E_q( E_ );
-    // PROJECT TO 'E'-SPACE AND THEN BACK TO JT-SPACE
-    q_dot_null_ = q_dot_ - q_dot_hat_;  // NULL SPACE WHEEL SPEEDS
-    rtE_ = E_ * q_dot_null_  ;    // RAW SLIP (INTERNAL VELs)
-    tE_ = DyrosMath::lowPassFilter(rtE_, tE_, 1/hz_, 10.0); //
-    ctE_ = Kp_E_ * tE_; // CONTROL FORCES to RESIST SLIP
-    tqE_ * E_.transpose() * ctE_;   // MAP TO JOINT TORQUES
-    // dAmp_ += tqE_;
-  }
+  // // INTERNAL FORCE COMPUTATION
+  // // If one wheel is in the air, use virtual truss and redundant info. to control it correctly
+  // if(true) {
+  //   veh_.Fill_E_q( E_ );
+  //   // PROJECT TO 'E'-SPACE AND THEN BACK TO JT-SPACE
+  //   q_dot_null_ = q_dot_ - q_dot_hat_;  // NULL SPACE WHEEL SPEEDS
+  //   rtE_ = E_ * q_dot_null_  ;    // RAW SLIP (INTERNAL VELs)
+  //   tE_ = DyrosMath::lowPassFilter(rtE_, tE_, 1/hz_, 100.0); //
+  //   ctE_ = Kp_E_ * tE_; // CONTROL FORCES to RESIST SLIP
+  //   tqE_ * E_.transpose() * ctE_;   // MAP TO JOINT TORQUES
+  //   // dAmp_ += tqE_;
+  // }
 
   taud_ = multiplier_ * dAmp_;
 
@@ -294,6 +294,10 @@ void MobileController::initClass()
   tE_.resize(NUM_TRUSS_LINKS);
   ctE_.resize(NUM_TRUSS_LINKS);
   rtE_.resize(NUM_TRUSS_LINKS);
+
+  tE_.setZero();
+  ctE_.setZero();
+  rtE_.setZero();
 
   heading_ = 0.0;
   additional_mass_ = 0.0;
@@ -514,7 +518,9 @@ void MobileController::printState()
     std::cout << "    dAmp: " << dAmp_.transpose() << std::endl;
     std::cout << "    taud: " << taud_.transpose() << std::endl;
     std::cout << "    tqS_: " << tqS_.transpose() << std::endl;
-    std::cout << "    tqE_: " << tqE_.transpose() << std::endl;
+    // std::cout << "    tqE_: " << tqE_.transpose() << std::endl;
+    // std::cout << "    rtE_: " << rtE_.transpose() << std::endl;
+    // std::cout << "     tE_: " << tE_.transpose() << std::endl;
     // std::cout << "t_n : " << tau_null_.transpose() << std::endl;
     if (is_plan_global) {std::cout << "gfd_star: " << gfd_star_.transpose() << std::endl;}
     std::cout << " fd_star: " << fd_star_.transpose() << std::endl;

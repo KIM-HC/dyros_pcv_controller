@@ -6,15 +6,16 @@ multiplier: 70.0  ## 50.0
 
 ## maximum speed for joystick and operational control command
 ##               X,Y    theta(in RADIAN)
-joy_speed:      [0.02,   0.055]
-op_max_speed:   [0.12,   0.18]
+joy_speed:      [0.025,   0.05]
+# op_max_speed:   [0.12,   0.18]
+op_max_speed:   [0.06,   0.09]
 
 ## targets for operational control
 ##            X    Y  theta(in DEGREE)
-target_1:   [0.6, 0.0, 0.0]  # 'o'
-target_2:   [-0.6, 0.0, 0.0] # 'p'
+target_1:   [0.5, 0.0, 0.0]  # 'o'
+target_2:   [-0.5, 0.0, 0.0] # 'p'
 global_target_1:   [0.0, 0.0, 0.0]  # 'o'
-global_target_2:   [-1.0, 0.0, 0.0] # 'p'
+global_target_2:   [-0.5, 0.0, 0.0] # 'p'
 
 plan_global: True
 
