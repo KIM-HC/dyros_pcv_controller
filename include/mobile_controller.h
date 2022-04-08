@@ -107,6 +107,7 @@ class MobileController
         double control_start_time_;
         double additional_mass_;
         double multiplier_;
+        double steer_weight_, q_dot_gain;
 
         std::string control_mode_, package_path_;
         bool is_mode_changed_, is_op_ctrl, is_plan_global, is_follow_target_global, is_target_1, is_follow_target{false};

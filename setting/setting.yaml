@@ -3,12 +3,14 @@ carry_mass: 0.0
 
 ## multiplier for changing current to torque
 multiplier: 70.0  ## 50.0
+# multiplier: 70.0  ## 50.0
 
 ## maximum speed for joystick and operational control command
 ##               X,Y    theta(in RADIAN)
 joy_speed:      [0.025,   0.05]
-# op_max_speed:   [0.12,   0.18]
-op_max_speed:   [0.06,   0.09]
+# op_max_speed:   [0.19,   0.30]
+op_max_speed:   [0.15,   0.30]
+# op_max_speed:   [0.06,   0.09]
 
 ## targets for operational control
 ##            X    Y  theta(in DEGREE)
@@ -21,11 +23,19 @@ plan_global: True
 
 
 ## gains for control
+q_dot_gain: 0.0
 ##            X,Y      theta
-Kp_task:    [ 7500.0,   8500.0]
-Kv_task:    [  220.0,    350.0]
-# Kv_task:    [   4.0,      5.0]
+# Kp_task:    [ 2500.0,   1000.0]
+# Kv_task:    [  100.0,    30.0]
 
+Kp_task:    [ 7500.0,   4500.0]
+Kv_task:    [  130.0,    70.0]
+
+# Kp_task:    [ 7500.0,   8500.0]
+# Kv_task:    [  220.0,    350.0]
+
+# Kp_task:    [ 7000.0,   7500.0]
+# Kv_task:    [  100.0,    90.0]
 
 ##             1     2      3      4      5      6      7      8
 Kp_joint:   [50.0,  50.0,  50.0,  50.0,  50.0,  50.0,  50.0,  50.0]
@@ -33,6 +43,7 @@ Kv_joint:   [ 1.0,   1.0,   1.0,   1.0,   1.0,   1.0,   1.0,   1.0]
 
 ## weighting factor for torque
 weight:     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+steer_weight: 1.0
 
 
 # ##            X,Y      theta

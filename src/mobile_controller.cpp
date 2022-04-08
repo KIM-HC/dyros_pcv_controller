@@ -59,7 +59,7 @@ void MobileController::compute()
   Jt_ = J_.transpose();
   Jcpt_ = Jcp_.transpose();
 
-  double freq_test = 200.0;
+  double freq_test = 120.0;
   // BEGIN ODOMETRY SECTION
   q_dot_filter_ = DyrosMath::lowPassFilter(q_dot_, q_dot_prev_, dt_, freq_test);
   q_dot_ = q_dot_filter_;
@@ -149,7 +149,7 @@ void MobileController::compute()
 
     dAmp_ = Jcpt_ * (Lambda_ * fd_star_ + Mu_);  // with Mu
     // dAmp_ = Jcpt_ *  Lambda_ * fd_star_ ;        // without Mu
-    dAmp_ = weight_.asDiagonal() * dAmp_;
+    dAmp_ = weight_.asDiagonal() * dAmp_ - q_dot_*q_dot_gain;
   }
 
   else if(control_mode_ == "joy_control_test") {
@@ -247,7 +247,7 @@ void MobileController::compute()
   // STEERING FRICTION COMPENSATION
   veh_.Fill_tqS(q_dot_, dAmp_, rtqS_);
   tqS_ = DyrosMath::lowPassFilter(rtqS_, tqS_, dt_, 50.0);
-  dAmp_ += tqS_;
+  dAmp_ += steer_weight_ * tqS_;
 
   // // INTERNAL FORCE COMPUTATION
   // // If one wheel is in the air, use virtual truss and redundant info. to control it correctly
@@ -271,7 +271,7 @@ void MobileController::compute()
   tick_++;
   play_time_ = tick_ * dt_;	// second
 
-  if ((play_time_- control_start_time_ > duration_ + 3.0) && is_follow_target) {
+  if ((play_time_- control_start_time_ > duration_ + 0.5) && is_follow_target) {
     std::cout << "\n\n\n\n\nCHANGING TARGET\n";
     current_target++;
     if (current_target == targets.size()) {
@@ -301,6 +301,8 @@ void MobileController::initClass()
 
   heading_ = 0.0;
   additional_mass_ = 0.0;
+  steer_weight_ = 0.0;
+  q_dot_gain = 0.0;
   is_op_ctrl = false;
 
   x_dot_.setZero();
@@ -425,7 +427,9 @@ void MobileController::setMode(const std::string & mode)
   gtarget_2(2) *= DEG2RAD;
   op_max_speed_ = Eigen::Vector2d(yam_["op_max_speed"].as<std::vector<double>>().data());
   Kp_E_ = yam_["Kp_E"].as<double>();
+  steer_weight_ = yam_["steer_weight"].as<double>();
   multiplier_ = yam_["multiplier"].as<double>();
+  q_dot_gain = yam_["q_dot_gain"].as<double>();
   is_plan_global = yam_["plan_global"].as<bool>();
 
 

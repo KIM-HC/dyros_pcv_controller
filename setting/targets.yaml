@@ -1,4 +1,4 @@
-target_index: 3
+target_index: 1
 
 ## [X, Y, THETA(DEGREE)]
 
@@ -12,35 +12,48 @@ target_index: 3
     - [0.0, 0.0, 180.0]
     - [0.0, 0.0, 0.0]
 
-1:
-  ## TEST IN CORRIDOR 4 meter
-  total_targets: 4
-  plan_global: True
-  targets:
-    - [4.0, 0.0, 0.0]
-    - [4.0, 0.0, 180.0]
-    - [0.0, 0.0, 180.0]
-    - [0.0, 0.0, 0.0]
 
-2:
-  ## UMB MARK 3 meter 2 lap
+1:
+  ## CW GLOBAL UMB MARK 3 meter 2 lap
   total_targets: 16
   plan_global: True
   targets:
-    - [3.0, 0.0,   0.0]  ## translation 1
-    - [3.0, 0.0,  90.0]  ## rotation 1
-    - [3.0, 3.0,  90.0]  ## translation 2
-    - [3.0, 3.0, 180.0]  ## rotation 2
-    - [0.0, 3.0, 180.0]  ## translation 3
-    - [0.0, 3.0, 270.0]  ## rotation 3
+    - [2.5, 0.0,   0.0]  ## translation 1
+    - [2.5, 0.0,  -90.0]  ## rotation 1
+    - [2.5, -2.5,  -90.0]  ## translation 2
+    - [2.5, -2.5, -180.0]  ## rotation 2
+    - [0.0, -2.5, -180.0]  ## translation 3
+    - [0.0, -2.5, -270.0]  ## rotation 3
+    - [0.0, 0.0, -270.0]  ## translation 4
+    - [0.0, 0.0, -360.0]  ## rotation 4
+    - [2.5, 0.0, -360.0]  ## translation 1
+    - [2.5, 0.0, -450.0]  ## rotation 1
+    - [2.5, -2.5, -450.0]  ## translation 2
+    - [2.5, -2.5, -540.0]  ## rotation 2
+    - [0.0, -2.5, -540.0]  ## translation 3
+    - [0.0, -2.5, -630.0]  ## rotation 3
+    - [0.0, 0.0, -630.0]  ## translation 4
+    - [0.0, 0.0, -720.0]  ## rotation 4
+
+2:
+  ## CCW GLOBAL UMB MARK 3 meter 2 lap
+  total_targets: 16
+  plan_global: True
+  targets:
+    - [2.5, 0.0,   0.0]  ## translation 1
+    - [2.5, 0.0,  90.0]  ## rotation 1
+    - [2.5, 2.5,  90.0]  ## translation 2
+    - [2.5, 2.5, 180.0]  ## rotation 2
+    - [0.0, 2.5, 180.0]  ## translation 3
+    - [0.0, 2.5, 270.0]  ## rotation 3
     - [0.0, 0.0, 270.0]  ## translation 4
     - [0.0, 0.0, 360.0]  ## rotation 4
-    - [3.0, 0.0, 360.0]  ## translation 1
-    - [3.0, 0.0, 450.0]  ## rotation 1
-    - [3.0, 3.0, 450.0]  ## translation 2
-    - [3.0, 3.0, 540.0]  ## rotation 2
-    - [0.0, 3.0, 540.0]  ## translation 3
-    - [0.0, 3.0, 630.0]  ## rotation 3
+    - [2.5, 0.0, 360.0]  ## translation 1
+    - [2.5, 0.0, 450.0]  ## rotation 1
+    - [2.5, 2.5, 450.0]  ## translation 2
+    - [2.5, 2.5, 540.0]  ## rotation 2
+    - [0.0, 2.5, 540.0]  ## translation 3
+    - [0.0, 2.5, 630.0]  ## rotation 3
     - [0.0, 0.0, 630.0]  ## translation 4
     - [0.0, 0.0, 720.0]  ## rotation 4
 
