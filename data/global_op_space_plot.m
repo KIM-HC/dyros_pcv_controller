@@ -1,5 +1,4 @@
 clc
-clear all
 
 x = load("raw/pcv_gx.txt");
 v = load("raw/pcv_gx_dot.txt");

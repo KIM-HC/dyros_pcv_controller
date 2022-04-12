@@ -13,7 +13,7 @@
 class MobileController
 {
     public:
-        MobileController(const double hz, const std::string pkg_path); 
+        MobileController(const double hz, const std::string pkg_path, const bool print_option=true); 
         ~MobileController(){};
         
         // get the raw data from the robot or simulator
@@ -107,7 +107,7 @@ class MobileController
         double control_start_time_;
         double additional_mass_;
         double multiplier_;
-        double steer_weight_, q_dot_gain;
+        double steer_weight_, q_dot_gain, print_option_;
 
         std::string control_mode_, package_path_;
         bool is_mode_changed_, is_op_ctrl, is_plan_global, is_follow_target_global, is_target_1, is_follow_target{false};

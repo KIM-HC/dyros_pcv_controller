@@ -1,10 +1,11 @@
 #include "mobile_controller.h"
 
 
-MobileController::MobileController(const double hz, const std::string pkg_path) : 
+MobileController::MobileController(const double hz, const std::string pkg_path, const bool print_option) : 
 tick_(0), play_time_(0.0), hz_(hz), control_mode_("none"), is_mode_changed_(false), dt_(1/hz), package_path_(pkg_path)
 {
   veh_.Add_Solid(  0.000,  0.000,  XR_Mv, XR_Iv);
+  print_option_ = print_option;
 
   YAML::Node yam_ = YAML::LoadFile(package_path_ + "/setting/pcv_parameter.yaml");
   int id = yam_["pcv_index"].as<int>();
@@ -265,7 +266,7 @@ void MobileController::compute()
   taud_ = multiplier_ * dAmp_;
 
   prev();
-  printState();
+  if (print_option_) {printState();}
   saveState();
 
   tick_++;
