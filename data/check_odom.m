@@ -1,7 +1,7 @@
 clc
 clear
 
-test_set = 4;
+test_set = 6;
 
 ogx = load("odom_maker/odom_out/gx_p0_f"+test_set+".txt");
 cax = load("odom_maker/odom_out/gx_p1_f"+test_set+".txt");

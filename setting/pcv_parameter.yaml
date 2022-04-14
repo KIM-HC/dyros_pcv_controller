@@ -1,6 +1,6 @@
 
 # file number for odom maker
-odom_maker_file_list: [1, 2, 3, 4]
+odom_maker_file_list: [6]
 
 pcv_index: 2
 ## angle error, x, y, offset, wheel radius
