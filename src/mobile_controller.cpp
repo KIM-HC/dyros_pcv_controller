@@ -1,7 +1,7 @@
 #include "mobile_controller.h"
 
 
-MobileController::MobileController(const double hz, const std::string pkg_path, const bool print_option) : 
+MobileController::MobileController(const double hz, const std::string pkg_path, const bool print_option, const int param_index) : 
 tick_(0), play_time_(0.0), hz_(hz), control_mode_("none"), is_mode_changed_(false), dt_(1/hz), package_path_(pkg_path)
 {
   veh_.Add_Solid(  0.000,  0.000,  XR_Mv, XR_Iv);
@@ -9,6 +9,9 @@ tick_(0), play_time_(0.0), hz_(hz), control_mode_("none"), is_mode_changed_(fals
 
   YAML::Node yam_ = YAML::LoadFile(package_path_ + "/setting/pcv_parameter.yaml");
   int id = yam_["pcv_index"].as<int>();
+  if (param_index > -1) {
+    id = param_index;
+  }
   q_error_.setZero();
   for (int idx=0; idx<4; idx++) {
     double _kx = yam_[id][idx]["steer_point"][0].as<double>();
@@ -59,6 +62,10 @@ void MobileController::compute()
   veh_.Fill_Jcp(Jcp_);          // NOTE: VIA CONTACT POINTS - for MIN CONTACT FORCES
   Jt_ = J_.transpose();
   Jcpt_ = Jcp_.transpose();
+  if (!is_torque_control)
+  {
+    Jcp_inv_ = Jcp_.transpose() * (Jcp_ * Jcp_.transpose() * damping1_ * Eigen::Matrix3d::Identity()).inverse();
+  }
 
   double freq_test = 120.0;
   // BEGIN ODOMETRY SECTION
@@ -84,7 +91,7 @@ void MobileController::compute()
   gx_dot_ = gx_dot_filter_;       // GLOBAL SPEED (ALSO FOR DYN)
   gx_ += rgx_dot_ * dt_;
 
-  // END ODOMETRY SECTION
+  // /END ODOMETRY SECTION
 
   // UPDATE DYNAMICS
   q_dot_hat_ = C_ * x_dot_; // ignore any slip for dynamics
@@ -116,14 +123,22 @@ void MobileController::compute()
         xd_ddot_(i) = quintic_temp(2);
       }
 
-      // in GLOBAL FRAME
       x_delta_ = xd_ - gx_;
       x_dot_delta_ = xd_dot_ - gx_dot_;
-      gfd_star_ = xd_ddot_
-                  + Kp_task.asDiagonal() * x_delta_
-                  + Kv_task.asDiagonal() * x_dot_delta_;
-      fd_star_ = rot_.transpose() * gfd_star_;
+      // in GLOBAL FRAME
+      if (is_torque_control)
+      {
+        gfd_star_ = xd_ddot_
+                    + Kp_task.asDiagonal() * x_delta_
+                    + Kv_task.asDiagonal() * x_dot_delta_;
+        fd_star_ = rot_.transpose() * gfd_star_;
+      }
+      else
+      {
+
+      }
     }
+
     else {
       x_target_ = x_init_ + target_op;
       duration_ = (x_init_ - x_target_).head<2>().norm() / op_max_speed_(0);
@@ -142,15 +157,29 @@ void MobileController::compute()
 
       x_delta_ = xd_ - x_;
       x_dot_delta_ = xd_dot_ - x_dot_;
-      fd_star_ = xd_ddot_
-                  + Kp_task.asDiagonal() * x_delta_
-                  + Kv_task.asDiagonal() * x_dot_delta_;
+      // in LOCAL FRAME
+      if (is_torque_control)
+      {
+        fd_star_ = xd_ddot_
+                   + Kp_task.asDiagonal() * x_delta_
+                   + Kv_task.asDiagonal() * x_dot_delta_;
+      }
+      else
+      {
+
+      }
     }
 
+    if (is_torque_control)
+    {
+      cmd_tau_ = Jcpt_ * (Lambda_ * fd_star_ + Mu_);  // with Mu
+      // cmd_tau_ = Jcpt_ *  Lambda_ * fd_star_ ;        // without Mu
+      cmd_tau_ = weight_.asDiagonal() * cmd_tau_ - q_dot_*q_dot_gain;
+    }
+    else
+    {
 
-    dAmp_ = Jcpt_ * (Lambda_ * fd_star_ + Mu_);  // with Mu
-    // dAmp_ = Jcpt_ *  Lambda_ * fd_star_ ;        // without Mu
-    dAmp_ = weight_.asDiagonal() * dAmp_ - q_dot_*q_dot_gain;
+    }
   }
 
   else if(control_mode_ == "joy_control_test") {
@@ -163,12 +192,19 @@ void MobileController::compute()
     x_delta_ = xd_ - x_;
     x_dot_delta_ = xd_dot_ - x_dot_;
 
-    fd_star_ = Kp_task.asDiagonal() * x_delta_
-             + Kv_task.asDiagonal() * x_dot_delta_;
+    fd_star_ = Kp_joy.asDiagonal() * x_delta_
+             + Kv_joy.asDiagonal() * x_dot_delta_;
 
-    dAmp_ = Jcpt_ * (Lambda_ * fd_star_ + Mu_);  // with Mu
-    // dAmp_ = Jcpt_ *  Lambda_ * fd_star_ ;        // without Mu
-    dAmp_ = weight_.asDiagonal() * dAmp_;
+    if (is_torque_control)
+    {
+      cmd_tau_ = Jcpt_ * (Lambda_ * fd_star_ + Mu_);  // with Mu
+      // cmd_tau_ = Jcpt_ *  Lambda_ * fd_star_ ;        // without Mu
+      cmd_tau_ = weight_.asDiagonal() * cmd_tau_;
+    }
+    else
+    {
+
+    }
   }
 
   else if(control_mode_ == "joy_control") {
@@ -176,99 +212,49 @@ void MobileController::compute()
       joy_input_.head<2>() = joy_input_.head<2>().normalized();
     }
 
-    x_delta_ = joy_speed_.asDiagonal() * joy_input_;
-    Eigen::Vector3d tmp_Kp_{1200.0, 1200.0, 1400.0};
-    fd_star_ = tmp_Kp_.asDiagonal() * x_delta_;
-
-    dAmp_ = Jcpt_ * (Lambda_ * fd_star_ + Mu_);  // with Mu
-    // dAmp_ = Jcpt_ *  Lambda_ * fd_star_ ;        // without Mu
-    dAmp_ = weight_.asDiagonal() * dAmp_;
-    dAmp_ = (80.0 / multiplier_) * dAmp_;
-
-  }
-
-  else if(control_mode_  == "steer_control") {
-    // q_target_ << 1.5*M_PI_2, q_init_(1), -1.5*M_PI_2, q_init_(3), -0.5*M_PI_2, q_init_(5), 0.5*M_PI_2, q_init_(7);
-    // q_target_ << M_PI, q_init_(1), -M_PI, q_init_(3), -M_PI, q_init_(5), M_PI, q_init_(7);
-    q_target_ << 0.0, q_init_(1), 0.0, q_init_(3), 0.0, q_init_(5), 0.0, q_init_(7);
-    duration_ = 1.5 * (q_init_ - q_target_).norm();
-
-    for(int  i = 0; i < 2*N_CASTERS; i++) {
-      Eigen::Vector3d q_temp;
-      q_temp = DyrosMath::quinticSpline(play_time_, control_start_time_, control_start_time_ + duration_,  q_init_(i), 0.0, 0.0, q_target_(i), 0.0, 0.0);     
-      qd_(i)      = q_temp(0);
-      qd_dot_(i)  = q_temp(1);
-      qd_ddot_(i) = q_temp(2);
+    if (is_torque_control)
+    {
+      x_delta_ = joy_speed_.asDiagonal() * joy_input_;
+      Eigen::Vector3d tmp_Kp_{1200.0, 1200.0, 1400.0};
+      fd_star_ = tmp_Kp_.asDiagonal() * x_delta_;
+      cmd_tau_ = Jcpt_ * (Lambda_ * fd_star_ + Mu_);  // with Mu
+      // cmd_tau_ = Jcpt_ *  Lambda_ * fd_star_ ;        // without Mu
+      cmd_tau_ = weight_.asDiagonal() * cmd_tau_;
+      cmd_tau_ = (80.0 / multiplier_) * cmd_tau_;
     }
-
-    dAmp_ = qd_ddot_ + Kp_joint.asDiagonal()*(qd_ - q_) + Kv_joint.asDiagonal()*(qd_dot_ -  q_dot_);
-  }
-
-  else if(control_mode_  == "steer_init") {
-    // q_target_ << 0.0, q_init_(1), 0.0, q_init_(3), 0.0, q_init_(5), 0.0, q_init_(7);
-    q_target_ << -1.5*M_PI_2, q_init_(1), 1.5*M_PI_2, q_init_(3), 0.5*M_PI_2, q_init_(5), -0.5*M_PI_2, q_init_(7);
-    duration_ = 1.5 * (q_init_ - q_target_).norm();
-
-    for(int  i = 0; i < 2*N_CASTERS; i++) {
-      Eigen::Vector3d q_temp;
-      q_temp = DyrosMath::quinticSpline(play_time_, control_start_time_, control_start_time_ + duration_,  q_init_(i), 0.0, 0.0, q_target_(i), 0.0, 0.0);     
-      qd_(i)      = q_temp(0);
-      qd_dot_(i)  = q_temp(1);
-      qd_ddot_(i) = q_temp(2);
+    else
+    {
+      xd_dot_ = joy_speed_.asDiagonal() * joy_input_;
+      x_dot_delta_ = xd_dot_ - x_dot_;
+      cmd_vel_ = Jcp_inv_ * xd_dot_;
     }
-
-    dAmp_ = qd_ddot_ + Kp_joint.asDiagonal()*(qd_ - q_) + Kv_joint.asDiagonal()*(qd_dot_ -  q_dot_);
   }
 
-  else if (control_mode_ == "wheel_control") {
-    double wheel_vel, wheel_ang, time_duration;
-    time_duration = 6.0;
-    wheel_vel = 0.5;
-    wheel_ang = wheel_vel*time_duration;
-    q_target_ = q_init_;
-    for (int i=0; i<N_CASTERS; i++) {
-      q_target_(i*2 + 1) += wheel_ang;
-    }
+  if (is_torque_control)
+  {
+    // STEERING FRICTION COMPENSATION
+    veh_.Fill_tqS(q_dot_, cmd_tau_, rtqS_);
+    tqS_ = DyrosMath::lowPassFilter(rtqS_, tqS_, dt_, 50.0);
+    cmd_tau_ += steer_weight_ * tqS_;
 
-    for(int  i = 0; i < 2*N_CASTERS; i++) {
-      Eigen::Vector3d q_temp;
-      q_temp = DyrosMath::quinticSpline(play_time_, control_start_time_, control_start_time_ + time_duration,  q_init_(i), 0.0, 0.0, q_target_(i), 0.0, 0.0);     
-      qd_(i)      = q_temp(0);
-      qd_dot_(i)  = q_temp(1);
-      qd_ddot_(i) = q_temp(2);
-    }
-
-    dAmp_ = qd_ddot_ + Kp_joint.asDiagonal()*(qd_ - q_) + Kv_joint.asDiagonal()*(qd_dot_ -  q_dot_);
+    // // INTERNAL FORCE COMPUTATION
+    // // If one wheel is in the air, use virtual truss and redundant info. to control it correctly
+    // if(true) {
+    //   veh_.Fill_E_q( E_ );
+    //   // PROJECT TO 'E'-SPACE AND THEN BACK TO JT-SPACE
+    //   q_dot_null_ = q_dot_ - q_dot_hat_;  // NULL SPACE WHEEL SPEEDS
+    //   rtE_ = E_ * q_dot_null_  ;    // RAW SLIP (INTERNAL VELs)
+    //   tE_ = DyrosMath::lowPassFilter(rtE_, tE_, 1/hz_, 100.0); //
+    //   ctE_ = Kp_E_ * tE_; // CONTROL FORCES to RESIST SLIP
+    //   tqE_ * E_.transpose() * ctE_;   // MAP TO JOINT TORQUES
+    //   // cmd_tau_ += tqE_;
+    // }
+    cmd_tau_ = multiplier_ * cmd_tau_;
   }
-
-  else {
-    dAmp_.setZero();
-  }
-
-  // STEERING FRICTION COMPENSATION
-  veh_.Fill_tqS(q_dot_, dAmp_, rtqS_);
-  tqS_ = DyrosMath::lowPassFilter(rtqS_, tqS_, dt_, 50.0);
-  dAmp_ += steer_weight_ * tqS_;
-
-  // // INTERNAL FORCE COMPUTATION
-  // // If one wheel is in the air, use virtual truss and redundant info. to control it correctly
-  // if(true) {
-  //   veh_.Fill_E_q( E_ );
-  //   // PROJECT TO 'E'-SPACE AND THEN BACK TO JT-SPACE
-  //   q_dot_null_ = q_dot_ - q_dot_hat_;  // NULL SPACE WHEEL SPEEDS
-  //   rtE_ = E_ * q_dot_null_  ;    // RAW SLIP (INTERNAL VELs)
-  //   tE_ = DyrosMath::lowPassFilter(rtE_, tE_, 1/hz_, 100.0); //
-  //   ctE_ = Kp_E_ * tE_; // CONTROL FORCES to RESIST SLIP
-  //   tqE_ * E_.transpose() * ctE_;   // MAP TO JOINT TORQUES
-  //   // dAmp_ += tqE_;
-  // }
-
-  taud_ = multiplier_ * dAmp_;
 
   prev();
   if (print_option_) {printState();}
   saveState();
-
   tick_++;
   play_time_ = tick_ * dt_;	// second
 
@@ -278,14 +264,12 @@ void MobileController::compute()
     if (current_target == targets.size()) {
       std::cout << "END OF TARGET!! EXITING!\n";
       is_follow_target = false;
-      // setMode("none");
     }
     else {
       std::cout << "NEXT INDEX: " << current_target << std::endl;
       setMode("op_control");
     }
   }
-
 }
 
 void MobileController::initClass()
@@ -322,6 +306,8 @@ void MobileController::initClass()
   Kv_joint.setZero();
   Kp_task.setZero();
   Kv_task.setZero();
+  Kp_joy.setZero();
+  Kv_joy.setZero();
   weight_.setZero();
 
   joy_speed_.setZero();
@@ -341,8 +327,8 @@ void MobileController::initClass()
 
 void MobileController::initMode()
 {
-  taud_.setZero();
-  dAmp_.setZero();
+  cmd_vel_.setZero();
+  cmd_tau_.setZero();
   rtqS_.setZero();
   tqS_.setZero();
   tqE_.setZero();
@@ -431,14 +417,21 @@ void MobileController::setMode(const std::string & mode)
   steer_weight_ = yam_["steer_weight"].as<double>();
   multiplier_ = yam_["multiplier"].as<double>();
   q_dot_gain = yam_["q_dot_gain"].as<double>();
+  damping1_ = yam_["damping1"].as<double>();
   is_plan_global = yam_["plan_global"].as<bool>();
 
 
   Eigen::Vector2d tmp_;
-  tmp_ = Eigen::Vector2d(yam_["Kp_task"].as<std::vector<double>>().data());
+  std::string control_type = "V_";
+  if (is_torque_control) {control_type = "T_";}
+  tmp_ = Eigen::Vector2d(yam_[control_type+"O_Kp"].as<std::vector<double>>().data());
   Kp_task = Eigen::Vector3d(tmp_(0), tmp_(0), tmp_(1));
-  tmp_ = Eigen::Vector2d(yam_["Kv_task"].as<std::vector<double>>().data());
+  tmp_ = Eigen::Vector2d(yam_[control_type+"O_Kv"].as<std::vector<double>>().data());
   Kv_task = Eigen::Vector3d(tmp_(0), tmp_(0), tmp_(1));
+  tmp_ = Eigen::Vector2d(yam_[control_type+"J_Kp"].as<std::vector<double>>().data());
+  Kp_joy = Eigen::Vector3d(tmp_(0), tmp_(0), tmp_(1));
+  tmp_ = Eigen::Vector2d(yam_[control_type+"J_Kv"].as<std::vector<double>>().data());
+  Kv_joy = Eigen::Vector3d(tmp_(0), tmp_(0), tmp_(1));
   tmp_ = Eigen::Vector2d(yam_["joy_speed"].as<std::vector<double>>().data());
   joy_speed_ = Eigen::Vector3d(tmp_(0), tmp_(0), tmp_(1));
 
@@ -473,6 +466,8 @@ void MobileController::setMode(const std::string & mode)
   std::cout << "   Kv_joint: " << Kv_joint.transpose() << std::endl;
   std::cout << "    Kp_task: " << Kp_task.transpose() << std::endl;
   std::cout << "    Kv_task: " << Kv_task.transpose() << std::endl;
+  std::cout << "     Kp_joy: " << Kp_joy.transpose() << std::endl;
+  std::cout << "     Kv_joy: " << Kv_joy.transpose() << std::endl;
   std::cout << "       Kp_E: " << Kp_E_ << std::endl;
   std::cout << "     weight: " << weight_.transpose() << std::endl;
   std::cout << "  joy_speed: " << joy_speed_.transpose() << std::endl;
@@ -483,6 +478,7 @@ void MobileController::setMode(const std::string & mode)
   std::cout << "  gtarget_1: " << gtarget_1.transpose() << std::endl;
   std::cout << "  gtarget_2: " << gtarget_2.transpose() << std::endl;
   std::cout << " multiplier: " << multiplier_ << std::endl;
+  std::cout << "   damping1: " << damping1_ << std::endl;
   std::cout << "plan_global: " << is_plan_global << std::endl;
 }
 
@@ -520,8 +516,8 @@ void MobileController::printState()
       std::cout << " qd_ddot: " << qd_ddot_.transpose() << std::endl;
       std::cout << " q_delta: " << (qd_ - q_).transpose() << std::endl;
     }
-    std::cout << "    dAmp: " << dAmp_.transpose() << std::endl;
-    std::cout << "    taud: " << taud_.transpose() << std::endl;
+    std::cout << "    cmd_vel: " << cmd_vel_.transpose() << std::endl;
+    std::cout << "    cmd_tau: " << cmd_tau_.transpose() << std::endl;
     std::cout << "    tqS_: " << tqS_.transpose() << std::endl;
     // std::cout << "    tqE_: " << tqE_.transpose() << std::endl;
     // std::cout << "    rtE_: " << rtE_.transpose() << std::endl;
@@ -548,7 +544,7 @@ void MobileController::saveState()
 
   pcv_qd      << qd_.transpose().format(tab_format)                   << std::endl;
   pcv_qd_dot  << qd_dot_.transpose().format(tab_format)               << std::endl;
-  pcv_taud    << taud_.transpose().format(tab_format)                 << std::endl;
+  pcv_taud    << cmd_tau_.transpose().format(tab_format)                 << std::endl;
   pcv_tqs     << tqS_.transpose().format(tab_format)                  << std::endl;
   pcv_tqe     << tqE_.transpose().format(tab_format)                  << std::endl;
 
@@ -565,7 +561,9 @@ void MobileController::saveState()
 
 }
 
-VectorQd MobileController::setDesiredJointTorque(){ return taud_; }
+VectorQd MobileController::setDesiredJointTorque(){ return cmd_tau_; }
+
+VectorQd MobileController::setDesiredJointVelocity(){ return cmd_vel_; }
 
 void MobileController::readJoint(const VectorQd &q, const VectorQd &q_dot, const VectorQd &tau)
 {

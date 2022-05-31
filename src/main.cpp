@@ -27,6 +27,7 @@ int main(int argc, char **argv)
 		}
 	}
 	MobileController mc(hz, pkg_path);
+	nh.getParam("/is_torque_control", mc.is_torque_control);
 
 	while (!ros::isShuttingDown() && !exit_flag)
 	{
@@ -50,9 +51,6 @@ int main(int argc, char **argv)
 					mc.setMode("none");
 					break;
 				MODE('j', "joy_control")
-				// MODE('s', "steer_control")
-				// MODE('i', "steer_init")
-				// MODE('w', "wheel_control")
 				MODE('n', "none")
 				case 't':
 					mc.startFollowTarget();
@@ -94,7 +92,7 @@ int main(int argc, char **argv)
 
 		if (is_simulation_run) {
 			mc.compute();
-			rn.jointTorquePublisher(mc.setDesiredJointTorque());
+			rn.jointPublisher(mc.setDesiredJointTorque(), mc.setDesiredJointVelocity());
 		}
 		loop_rate.sleep();
 		

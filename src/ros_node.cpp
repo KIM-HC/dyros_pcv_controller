@@ -49,7 +49,7 @@ void RosNode::joyCallback(const sensor_msgs::Joy::ConstPtr& msg) {
     }
 }
 
-void RosNode::jointTorquePublisher(const VectorQd& tau) {
+void RosNode::jointPublisher(const VectorQd& tau, const VectorQd& vel) {
     msg_.header.stamp = ros::Time::now();
     for (int i=0; i<N_CASTERS; i++) {
         int controller_s = i * 2;
@@ -57,8 +57,10 @@ void RosNode::jointTorquePublisher(const VectorQd& tau) {
         int canopen_s = i * 2 + 1;
         int canopen_r = i * 2;
 
+        msg_.velocity[canopen_s] = vel[controller_s];
         msg_.effort[canopen_s] = tau[controller_s];
 
+        msg_.velocity[canopen_r] = vel[controller_r];
         msg_.effort[canopen_r] = tau[controller_r];
     }
     pub_.publish(msg_);

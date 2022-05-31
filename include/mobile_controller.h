@@ -13,7 +13,7 @@
 class MobileController
 {
     public:
-        MobileController(const double hz, const std::string pkg_path, const bool print_option=true); 
+        MobileController(const double hz, const std::string pkg_path, const bool print_option=true, const int param_index=-1); 
         ~MobileController(){};
         
         // get the raw data from the robot or simulator
@@ -29,11 +29,12 @@ class MobileController
         void startFollowTarget();
 
         VectorQd setDesiredJointTorque();
+        VectorQd setDesiredJointVelocity();
 
         Vehicle veh_;
 
         // JT-SPACE PARAMETERS(i.e., steer/wheel joint)
-        //                      pos               vel         acc
+        //                      pos               vel        acc
         VectorQd                  q_,           q_dot_,    q_ddot_;     // phi, rho
         VectorQd                 qd_,          qd_dot_,   qd_ddot_;     // desired
         VectorQd             q_init_,      q_dot_init_;                 // init values
@@ -44,14 +45,13 @@ class MobileController
         VectorQd                            q_dot_hat_;                 // computed by Jacobian
         VectorQd                           q_dot_null_;
         VectorQd                                              tau_;
-        VectorQd                                             dAmp_;     // desired current
-        VectorQd                                             taud_;
         VectorQd                                         tau_null_;
         VectorQd                                             rtqS_;
         VectorQd                                              tqS_;
         VectorQd                                              tqE_;
+        VectorQd                              cmd_vel_,   cmd_tau_;     // commands for joint
 
-        // OP-SPACE PARAMETERS(i.e., mobile base)
+        // OP-SPACE PARAMETERS(i.e., mobile base (X,Y,THETA))
         //                      pos               vel         acc
         Eigen::Vector3d    target_op;
         Eigen::Vector3d     target_1;
@@ -91,14 +91,16 @@ class MobileController
 
         // DYNAMICS PARAMETERS
         MatrixQtd   Jcp_,   J_;
-        MatrixQd    Jcpt_,  Jt_;
+        MatrixQd    Jcpt_,  Jt_, Jcp_inv_;
         MatrixQd    C_;             // wheel constraint matrix
         Eigen::Matrix3d Lambda_;
         Eigen::Vector3d Mu_;
 
+        // GAINS
         VectorQd        Kp_joint,   Kv_joint;
         VectorQd        weight_;
         Eigen::Vector3d Kp_task,    Kv_task;
+        Eigen::Vector3d Kp_joy,     Kv_joy;
 
         unsigned long tick_;
         int print_tick_;
@@ -106,11 +108,13 @@ class MobileController
         double hz_, dt_, duration_;
         double control_start_time_;
         double additional_mass_;
-        double multiplier_;
+        double multiplier_, damping1_;
         double steer_weight_, q_dot_gain, print_option_;
 
         std::string control_mode_, package_path_;
-        bool is_mode_changed_, is_op_ctrl, is_plan_global, is_follow_target_global, is_target_1, is_follow_target{false};
+        bool is_mode_changed_, is_op_ctrl, is_plan_global;
+        bool is_follow_target_global, is_target_1, is_follow_target{false};
+        bool is_torque_control{true};
 
     private:        
         void printState();

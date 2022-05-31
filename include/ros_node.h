@@ -19,7 +19,7 @@ class RosNode
         void read();
         void homingPublisher();
         void stopPublisher();
-        void jointTorquePublisher(const VectorQd& tau);
+        void jointPublisher(const VectorQd& tau, const VectorQd& vel);
 
         VectorQd getCurrentJointAngle();
         VectorQd getCurrentJointVelocity();
