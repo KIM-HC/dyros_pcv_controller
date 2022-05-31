@@ -9,7 +9,7 @@ damping1: 0.1
 
 ## maximum speed for joystick and operational control command
 ##               X,Y    theta(in RADIAN)
-joy_speed:      [0.025,   0.05]
+joy_speed:      [0.01,   0.01]
 # op_max_speed:   [0.19,   0.30]
 op_max_speed:   [0.15,   0.30]
 # op_max_speed:   [0.06,   0.09]
